@@ -15,9 +15,8 @@ module load gnuparallel/20180822
 meteor="/proj/uppstore2019028/projects/metagenome/theo/newscripts/meteor/meteor.sh"
 project="/proj/snic2020-6-153/delivery03711/FMT.gut.project"
 seq_data_dir="/proj/snic2020-6-153/delivery03711"
+samples="/proj/uppstore2019028/projects/metagenome/theo/todo"
 
-# First argument is a file that contains the sample names
-samples="$1"
 parallel -j 3 " \
 	$meteor \
 		-f $samples/{}_1.fastq.gz \

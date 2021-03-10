@@ -8,9 +8,8 @@
 #SBATCH --mail-type=ALL
 
 projDir="/crex/proj/uppstore2019028/projects/metagenome/theo/delivery03711/FMT.gut.project"
-addressToSh="/crex/proj/uppstore2019028/projects/metagenome/theo/newscripts/downstream"
+Downstream="/crex/proj/uppstore2019028/projects/metagenome/theo/newscripts/downstream/downstream.sh"
 
-
-$addressToSh/downstream.sh \
+$Downstream.sh \
 	-p $projDir \
 	-c "gut_catalog"

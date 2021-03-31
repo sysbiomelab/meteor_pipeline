@@ -12,10 +12,8 @@
 
 module load gnuparallel/20180822
 
-meteor="/proj/uppstore2019028/projects/metagenome/theo/newscripts/meteor/meteor.sh"
-project="/proj/snic2020-6-153/delivery03711/FMT.gut.project"
-seq_data_dir="/proj/snic2020-6-153/delivery03711"
-samples="/proj/uppstore2019028/projects/metagenome/theo/todo"
+source gut_msp_pipeline.ini
+cat gut_msp_pipeline.ini
 
 parallel -j 3 " \
 	$meteor \
@@ -25,5 +23,5 @@ parallel -j 3 " \
 		-s illumina \
 		-c gut_catalog \
 	&& \
-		rsync -aurvP --remove-source-files $TMPDIR/{}/ $project" \
+		rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" \
 :::: $samples

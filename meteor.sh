@@ -99,10 +99,10 @@ while getopts 'f:i:' flag; do
 		:) Help ; exit 1
 	esac
 done
-Run Parse_variables &&
-#Run Load_modules &&
-#Run Init &&
-#Run Prepare &&
+Run Parse_variables
+Run Load_modules
+Run Init
+Run Prepare
 #Run Decompress &&
 #Run Trim &&
 #Run Import &&

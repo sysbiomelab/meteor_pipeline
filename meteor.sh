@@ -7,24 +7,21 @@ Help() {
 	echo '-c: catalog type (default=catalog)'
 	echo '-s: platform used to sequence data'
 }
-
 function Run {
 	echo "...$(date): $1 - begin"
 	$@ \
 	&& (echo "...$(date): $1 - done"; echo "") \
 	|| (echo "...$(date): $1 - failed"; echo "")
 }
-
 function Load_modules {
 	module load bioinfo-tools
 	module load ruby/2.6.2
 	module load AlienTrimmer/0.4.0
 	module load bowtie2/2.3.4.1
 }
-
 function Parse_variables {
-	ini_file="/proj/uppstore2019028/projects/metagenome/gut_msp_pipeline.ini"
-
+	cat $ini_file
+	source $ini_file
 	project_dir=$(readlink -f $project_dir_rel)
 	fastqgz1=$(readlink -f ${fastqgzs[0]})
 	fastqgz2=$(readlink -f ${fastqgzs[1]})
@@ -37,27 +34,21 @@ function Parse_variables {
 	final1="${tempdir}/${sampleId}_1.fastq"
 	final2="${tempdir}/${sampleId}_2.fastq"
 	sampledir=${project_dir}/${catalog_type}/sample/${sampleId}
-
-	trimFasta="/proj/uppstore2019028/projects/metagenome/alienTrimmerPF8contaminants.fasta"
-	meteorImportScript="/proj/uppstore2019028/meteor.2019.11.04/MeteorImportFastq.rb"
-	reference="/proj/uppstore2019028/projects/metagenome/meteor.reference"
-	meteor="/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04"
-	vars=$(compgen -A variable | grep "^.*")
-	for var in ${vars}; do echo "${var}=${!var}"; done
-	for var in ${vars}; do if [[ -z "${!var}" ]]; then echo "missing argument ${var}" ; return 1 ; fi ; done
 }
-
 function Init {
 	mkdir -p ${project_dir}/${catalog_type}/{sample,mapping,profiles}
 }
-
 function Prepare {
-	mkdir -p
+	mkdir -p ${tempdir}
+	cp $fastqgz1 ${tempdir}/$fastqgz1 & pid1=$!
+	cp $fastqgz2 ${tempdir}/$fastqgz2 & pid2=$!
+	trap "kill -2 $pid1 $pid2" SIGINT
+	wait
 }
 function Decompress {
 	mkdir -p ${tempdir}
-	zcat $fastqgz1 > $fastqgz1_unzip & pid1=$!
-	zcat $fastqgz2 > $fastqgz2_unzip & pid2=$!
+	zcat ${tempdir}/$fastqgz1 > $fastqgz1_unzip & pid1=$!
+	zcat ${tempdir}/$fastqgz2 > $fastqgz2_unzip & pid2=$!
 	trap "kill -2 $pid1 $pid2" SIGINT
 	wait
 }
@@ -109,11 +100,11 @@ while getopts 'f:i:' flag; do
 	esac
 done
 Run Parse_variables &&
-Run Load_modules &&
-Run Init &&
-Run Prepare &&
-Run Decompress &&
-Run Trim &&
-Run Import &&
-Run Map_reads &&
-Run Quantify
+#Run Load_modules &&
+#Run Init &&
+#Run Prepare &&
+#Run Decompress &&
+#Run Trim &&
+#Run Import &&
+#Run Map_reads &&
+#Run Quantify

@@ -50,8 +50,6 @@ function PrepareGCT {
 }
 
 function SaveGCT {
-	[[ -f $v_downstream_dir/merged.final.tsv ]] \
-	|| (echo "GCT file not found" ; return 1 )
 	cd $v_downstream_dir
 	Rscript $v_Rdir/save.gct.r  \
 		merged.final.tsv \
@@ -61,8 +59,6 @@ function SaveGCT {
 }
 
 function Normalize {
-	[[ -f $v_downstream_dir/merged.final.RData ]] \
-	|| (echo "RData file not found" ; return 1 )
 	cd $v_downstream_dir
 	Rscript $v_Rdir/get.norm.downsize.r \
 		merged.final.RData \
@@ -73,8 +69,6 @@ function Normalize {
 }
 
 function GetMGS {
-	[[ -f $v_downstream_dir/merged.final.norm.10M.RData ]] \
-	|| (echo "zip file not found" ; return 1 )
 	cd $v_downstream_dir
 	Rscript $v_Rdir/get.mgs.from.norm.r \
 		merged.final.norm.10M.RData \
@@ -93,11 +87,11 @@ while getopts 'p:c:' flag; do
 	esac
 done
 
-Run Parse_variables &&
-Run Init &&
-Run PrepareReports counting_report &&
-Run PrepareReports extended_counting_report &&
-Run PrepareGCT &&
-Run SaveGCT &&
-Run Normalize &&
+Run Parse_variables
+Run Init
+Run PrepareReports counting_report
+Run PrepareReports extended_counting_report
+Run PrepareGCT
+Run SaveGCT
+Run Normalize
 Run GetMGS 

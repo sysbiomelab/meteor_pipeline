@@ -1,4 +1,4 @@
-source("convert.functions.r")
+source("/proj/uppstore2019028/projects/metagenome/theo/newscripts/meteor/rscripts/convert.functions.r")
 require(dplyr)  
 require(ggplot2)
 require(momr)

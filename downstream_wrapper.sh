@@ -1,15 +1,16 @@
 #!/bin/bash
-#SBATCH -A snic2020-5-222
-#SBATCH -p core
-#SBATCH -n 17
-#SBATCH -t 15:00:00
-#SBATCH -J FMT_momr
+#SBATCH --account=snic2020-5-222
+#SBATCH --partition=core
+#SBATCH --ntasks=17
+#SBATCH --time=12:00:00
+#SBATCH --job-name=FMT_downstream
 #SBATCH --mail-user zn.tportlock@gmail.com
 #SBATCH --mail-type=ALL
+#SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/logs/slurm_%j.log 
 
-projDir="/crex/proj/uppstore2019028/projects/metagenome/theo/delivery03711/FMT.gut.project"
-Downstream="/crex/proj/uppstore2019028/projects/metagenome/theo/newscripts/downstream/downstream.sh"
+projDir="/proj/snic2020-6-153/delivery03711/FMT.gut.project"
+Downstream="/crex/proj/uppstore2019028/projects/metagenome/theo/newscripts/meteor/downstream.sh"
 
-$Downstream.sh \
+$Downstream \
 	-p $projDir \
 	-c "gut_catalog"

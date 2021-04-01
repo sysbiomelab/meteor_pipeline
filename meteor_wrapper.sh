@@ -2,7 +2,7 @@
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
 #SBATCH --ntasks=20
-#SBATCH --time=2-00:00:00
+#SBATCH --time=3-00:00:00
 #SBATCH --job-name=METEOR_run_batch
 #SBATCH --mail-user=zn.tportlock@gmail.com
 #SBATCH --mail-type=ALL
@@ -169,7 +169,7 @@ source $ini_file > /dev/null 2>&1
 cat $ini_file
 
 # Run meteor
-parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier" ::: $samples
+# parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier" ::: $samples
 
 # Run the downstream analysis
 Downstream

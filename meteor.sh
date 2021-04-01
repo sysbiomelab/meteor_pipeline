@@ -11,7 +11,7 @@ function Run {
 	echo "...$(date): $1 - begin"
 	$@ \
 	&& (echo "...$(date): $1 - done"; echo "") \
-	|| (echo "...$(date): $1 - failed"; echo "")
+	|| (echo "...$(date): $1 - failed"; echo ""; exit 1)
 }
 function Load_modules {
 	module load bioinfo-tools
@@ -26,7 +26,7 @@ function Parse_variables {
 	fastqgz1=$(readlink -f ${fastqgzs[0]})
 	fastqgz2=$(readlink -f ${fastqgzs[1]})
 	sampleId=$(printf "%s\n%s\n" "$(basename $fastqgz1 .gz)" "$(basename $fastqgz2 .gz)" \
-	| sed -e 'N;s/^\(.*\).*\n\1.*$/\1/' -e "s/[^[:alnum:]]//g")
+	| sed -e 'N;s/^\(.*\).*\n\1.*$/\1/'
 	tempdir=${project_dir}/${sampleId}
 	fastqgz1_unzip="${tempdir}/$(basename $fastqgz1 .gz).unzipped"
 	fastqgz2_unzip="${tempdir}/$(basename $fastqgz2 .gz).unzipped"
@@ -34,6 +34,9 @@ function Parse_variables {
 	final1="${tempdir}/${sampleId}_1.fastq"
 	final2="${tempdir}/${sampleId}_2.fastq"
 	sampledir=${project_dir}/${catalog_type}/sample/${sampleId}
+
+	#just to test
+	echo $project_dir
 }
 function Init {
 	mkdir -p ${project_dir}/${catalog_type}/{sample,mapping,profiles}

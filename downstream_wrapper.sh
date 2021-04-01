@@ -15,7 +15,7 @@ function Run {
 	|| (echo "...$(date): $1 - failed"; echo ""; exit 1)
 }
 function Parse_variables {
-	v_project_dir=$(readlink -f $v_project_dir_rel)
+	v_project_dir=$(readlink -f $project_dir_rel)
 	v_downstream_dir="$v_project_dir/Downstream"
 	vars=$(compgen -A variable | grep "^v_.*") 
 	for var in ${vars}; do echo "${var}=${!var}"; done
@@ -76,10 +76,10 @@ source $ini_file > /dev/null 2>&1
 cat $ini_file
 
 Run Parse_variables
-#Run Init
-#Run PrepareReports counting_report
-#Run PrepareReports extended_counting_report
-#Run PrepareGCT
-#Run SaveGCT
-#Run Normalize
-#Run GetMGS 
+Run Init
+Run PrepareReports counting_report
+Run PrepareReports extended_counting_report
+Run PrepareGCT
+Run SaveGCT
+Run Normalize
+Run GetMGS 

@@ -1,0 +1,2 @@
+"sample","condition","reference","mapping_tool","mismatches","mapped_read_length","read_count","HQ_read_count","HQ_clean_read_count","Homo_sapiens_GRCh38_excluded_read_count","A_thaliana_TAIR10_excluded_read_count","Bos_taurus_UMD3_excluded_read_count","mapped_read_count","%mapped_read_count","unique_mapped_read_count","%unique_mapped_read_count"
+"FMT111","NA","hs_10_4_igc2","bowtie2",5,35,0,0,0,0,0,0,0,0,0,0

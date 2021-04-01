@@ -11,7 +11,7 @@ function Run {
 	echo "...$(date): $1 - begin"
 	$@ \
 	&& (echo "...$(date): $1 - done"; echo "") \
-	|| (echo "...$(date): $1 - failed"; echo "")
+	|| (echo "...$(date): $1 - failed"; echo ""; exit 1)
 }
 function Load_modules {
 	module load bioinfo-tools

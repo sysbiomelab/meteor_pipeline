@@ -3,7 +3,7 @@
 #SBATCH --partition=core
 #SBATCH --ntasks=10
 #SBATCH --time=12:00:00
-#SBATCH --job-name=FMT_batch_prepare
+#SBATCH --job-name=Meteor_run
 #SBATCH --mail-user=zn.tportlock@gmail.com
 #SBATCH --mail-type=ALL
 #SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/logs/slurm_%j.log 

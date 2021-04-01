@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/bin/bash -l
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
 #SBATCH --ntasks=10
 #SBATCH --time=12:00:00
-#SBATCH --job-name=FMT_downstream
-#SBATCH --mail-user zn.tportlock@gmail.com
+#SBATCH --job-name=bacterial_test
+#SBATCH --mail-user=neelubegum2@gmail.com
 #SBATCH --mail-type=ALL
-#SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/logs/slurm_%j.log 
+#SBATCH --output=/proj/uppstore2019028/Neelu_liver/Meteor_Output/slurm_%j.log 
 
 function Run {
 	echo "...$(date): $1 - begin"
@@ -75,11 +75,11 @@ ini_file="gut_msp_pipeline.ini"
 source $ini_file > /dev/null 2>&1
 cat $ini_file
 
-Run Parse_variables
-Run Init
-Run PrepareReports counting_report
-Run PrepareReports extended_counting_report
-Run PrepareGCT
-Run SaveGCT
-Run Normalize
+Run Parse_variables &&
+Run Init &&
+Run PrepareReports counting_report &&
+Run PrepareReports extended_counting_report &&
+Run PrepareGCT &&
+Run SaveGCT &&
+Run Normalize &&
 Run GetMGS 

@@ -56,3 +56,37 @@ meteor.mismatches=5
 meteor.is.perc.mismatches=1
 meteor.bestalignment=1
 meteor.mapping.prefix.name=mapping_vs_Bos_taurus_UMD3
+...Thu Apr  1 17:57:41 CEST 2021: Parse_variables - begin
+v_fastqgz1=/crex/proj/snic2020-6-153/delivery03711/FMT111_1.fastq.gz
+v_fastqgz1_unzip=/scratch/19281587/FMT111/FMT111/FMT111_1.fastq.unzipped
+v_fastqgz2=/crex/proj/snic2020-6-153/delivery03711/FMT111_2.fastq.gz
+v_fastqgz2_unzip=/scratch/19281587/FMT111/FMT111/FMT111_2.fastq.unzipped
+v_final1=/scratch/19281587/FMT111/FMT111/FMT111_1.fastq
+v_final2=/scratch/19281587/FMT111/FMT111/FMT111_2.fastq
+v_project_dir=/scratch/19281587/FMT111
+v_sampleId=FMT111
+v_sampledir=/scratch/19281587/FMT111/gut_catalog/sample/FMT111
+v_trimmedS=/scratch/19281587/FMT111/FMT111/FMT111.trimmed.s.fastq
+v_workdir=/scratch/19281587/FMT111/FMT111
+...Thu Apr  1 17:57:41 CEST 2021: Parse_variables - done
+
+...Thu Apr  1 17:57:41 CEST 2021: Init - begin
+...Thu Apr  1 17:57:41 CEST 2021: Init - done
+
+...Thu Apr  1 17:57:41 CEST 2021: Parse_variables - begin
+v_fastqgz1=/crex/proj/snic2020-6-153/delivery03711/FMT105_1.fastq.gz
+v_fastqgz1_unzip=/scratch/19281587/FMT105/FMT105/FMT105_1.fastq.unzipped
+v_fastqgz2=/crex/proj/snic2020-6-153/delivery03711/FMT105_2.fastq.gz
+v_fastqgz2_unzip=/scratch/19281587/FMT105/FMT105/FMT105_2.fastq.unzipped
+v_final1=/scratch/19281587/FMT105/FMT105/FMT105_1.fastq
+v_final2=/scratch/19281587/FMT105/FMT105/FMT105_2.fastq
+v_project_dir=/scratch/19281587/FMT105
+v_sampleId=FMT105
+v_sampledir=/scratch/19281587/FMT105/gut_catalog/sample/FMT105
+v_trimmedS=/scratch/19281587/FMT105/FMT105/FMT105.trimmed.s.fastq
+v_workdir=/scratch/19281587/FMT105/FMT105
+...Thu Apr  1 17:57:41 CEST 2021: Parse_variables - done
+
+...Thu Apr  1 17:57:41 CEST 2021: Init - begin
+...Thu Apr  1 17:57:41 CEST 2021: Init - done
+

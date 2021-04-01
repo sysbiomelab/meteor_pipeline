@@ -17,3 +17,4 @@ modify the workflow.ini file to source the necessary programs, sequencing data, 
 ```bash
 bash meteor_pipeline.sh
 ```
+No spaces in any of the INI file!

@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/bin/bash -l
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
 #SBATCH --ntasks=10
 #SBATCH --time=12:00:00
-#SBATCH --job-name=FMT_downstream
-#SBATCH --mail-user zn.tportlock@gmail.com
+#SBATCH --job-name=bacterial_test
+#SBATCH --mail-user=neelubegum2@gmail.com
 #SBATCH --mail-type=ALL
-#SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/logs/slurm_%j.log 
+#SBATCH --output=/proj/uppstore2019028/Neelu_liver/Meteor_Output/slurm_%j.log 
 
 function Run {
 	echo "...$(date): $1 - begin"

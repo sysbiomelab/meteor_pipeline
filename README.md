@@ -13,8 +13,7 @@ It is required that the machine that runs this code has installed:
 None required, simply clone this repository
 
 ## Runtime
-modify the workflow.ini file to source the necessary programs, sequencing data, and project location and run with:
+modify the workflow.ini file (without spaces) to source the necessary programs, sequencing data, and project location and run with:
 ```bash
 bash meteor_pipeline.sh
 ```
-No spaces in any of the INI file!

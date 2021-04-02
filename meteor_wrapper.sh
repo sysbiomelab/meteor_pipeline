@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
-#SBATCH --ntasks=10
+#SBATCH --ntasks=8
 #SBATCH --time=12:00:00
 #SBATCH --job-name=Meteor_run
 #SBATCH --mail-user=zn.tportlock@gmail.com
@@ -99,8 +99,8 @@ module load AlienTrimmer/0.4.0
 module load bowtie2/2.3.4.1
 module load gnuparallel/20180822
 
-ini_file="gut_msp_pipeline.ini"
+ini_file="bacteria.check.workflow.ini"
 source $ini_file > /dev/null 2>&1
 cat $ini_file
 
-parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier && rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples
+parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples

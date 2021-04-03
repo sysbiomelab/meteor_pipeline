@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
-#SBATCH --ntasks=20
+#SBATCH --ntasks=40
 #SBATCH --time=2-00:00:00
 #SBATCH --job-name=Meteor_run
 #SBATCH --mail-user=neelubegum2@gmail.com

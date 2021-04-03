@@ -1,12 +1,12 @@
 #!/bin/bash -l
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
-#SBATCH --ntasks=8
-#SBATCH --time=12:00:00
+#SBATCH --ntasks=20
+#SBATCH --time=2-00:00:00
 #SBATCH --job-name=Meteor_run
-#SBATCH --mail-user=zn.tportlock@gmail.com
+#SBATCH --mail-user=neelubegum2@gmail.com
 #SBATCH --mail-type=ALL
-#SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/logs/slurm_%j.log 
+#SBATCH --output=/proj/uppstore2019028/Neelu_liver/Meteor_Output/slurm_%j.log 
 set -a
 
 function Run {
@@ -75,7 +75,7 @@ function Quantify {
 		-f ${v_project_dir}/${catalog_type}/profiles \
 		-t smart_shared_reads \
 		-w ${ini_file} \
-		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_vs_hs_10_4_igc2_id95_rmHost_id95_gene_profile/census.dat \
+		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_vs_fungal_catalog_id95_rmHost_id95_gene_profile/census.dat \
 	&& rm -r ${v_project_dir}/${catalog_type}/mapping/${sampleId} \
 	|| return 1
 }
@@ -103,4 +103,4 @@ ini_file="bacteria.check.workflow.ini"
 source $ini_file > /dev/null 2>&1
 cat $ini_file
 
-parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples
+parallel -j 6 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples

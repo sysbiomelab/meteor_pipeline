@@ -18,9 +18,9 @@ function Run {
 function Parse_variables {
 	v_downstream_dir="$v_project_dir/Downstream"
 	v_project_dir=$TMPDIR/$sampleId
+	v_workdir="${v_project_dir}/working"
 	v_fastqgz1=$(readlink -f ${fastqgzs[0]})
 	v_fastqgz2=$(readlink -f ${fastqgzs[1]})
-	v_workdir="${v_project_dir}/working"
 	v_fastqgz1_unzip="${v_workdir}/$(basename $v_fastqgz1 .gz).unzipped"
 	v_fastqgz2_unzip="${v_workdir}/$(basename $v_fastqgz2 .gz).unzipped"
 	v_trimmedS="${v_workdir}/${sampleId}.trimmed.s.fastq"
@@ -33,18 +33,11 @@ function Parse_variables {
 }
 function Init {
 	mkdir -p ${v_project_dir}/${catalog_type}/{sample,mapping,profiles}
-}
-function Prepare {
 	mkdir -p ${v_workdir}
-	cp $v_fastqgz1 ${v_workdir} & pid1=$!
-	cp $v_fastqgz2 ${v_workdir} & pid2=$!
-	trap "kill -2 $pid1 $pid2" SIGINT
-	wait
 }
 function Decompress {
-	mkdir -p ${v_workdir}
-	zcat ${v_workdir}/$v_fastqgz1 > $v_fastqgz1_unzip & pid1=$!
-	zcat ${v_workdir}/$v_fastqgz2 > $v_fastqgz2_unzip & pid2=$!
+	zcat $v_fastqgz1 > $v_fastqgz1_unzip & pid1=$!
+	zcat $v_fastqgz2 > $v_fastqgz2_unzip & pid2=$!
 	trap "kill -2 $pid1 $pid2" SIGINT
 	wait
 }
@@ -141,7 +134,6 @@ Main() {
 
 	Run Parse_variables &&
 	Run Init &&
-	Run Prepare &&
 	Run Decompress &&
 	Run Trim &&
 	Run Import &&

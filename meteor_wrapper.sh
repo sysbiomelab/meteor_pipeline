@@ -16,6 +16,7 @@ function Run {
 	|| (echo "...$(date): $1 - failed"; echo ""; exit 1)
 }
 function Parse_variables {
+	v_downstream_dir="$v_project_dir/Downstream"
 	v_project_dir=$TMPDIR/$sampleId
 	v_fastqgz1=$(readlink -f ${fastqgzs[0]})
 	v_fastqgz2=$(readlink -f ${fastqgzs[1]})
@@ -82,10 +83,57 @@ function Quantify {
 		-f ${v_project_dir}/${catalog_type}/profiles \
 		-t smart_shared_reads \
 		-w ${ini_file} \
-		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_vs_hs_10_4_igc2_id95_rmHost_id95_gene_profile/census.dat \
+		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_${meteor_counting_prefix_name}_gene_profile/census.dat \
 	&& rm -r ${v_project_dir}/${catalog_type}/mapping/${sampleId} \
 	|| return 1
 }
+function PrepareReports {
+	inFile=$v_downstream_dir/$1.csv
+	outFile=$v_downstream_dir/$1.final.csv
+	cat $v_project_dir/$v_catalog_type/profiles/*$1.csv > $inFile
+	head -1 $inFile > ${outFile}.header
+	cat $inFile | grep -v sample > ${outFile}.body
+	cat ${outFile}.header ${outFile}.body > ${outFile}
+	rm ${inFile} ${outFile}.header ${outFile}.body
+}
+function PrepareGCT {
+	inFile=$v_downstream_dir/merged.tsv
+	outFile=$v_downstream_dir/merged.final.tsv
+	paste $v_project_dir/$v_catalog_type/profiles/*.tsv > $inFile
+	width=$(head -1 $inFile | awk '{print NF}')
+	echo $width
+	cat $inFile | cut -f1 | sed 's/\#id_fragment/gene_id/g' > ${outFile}.gene
+	cat $inFile | awk -v width="$width" 'BEGIN{OFS="\t"}{s="";for(i=2;i<=width;i=i+2){if (i!=width)s=s $i "\t"; if (i==width) s=s $i}; print s}' > ${outFile}.expr
+	paste ${outFile}.gene ${outFile}.expr > ${outFile}
+	rm ${inFile} ${outFile}.gene ${outFile}.expr
+}
+function SaveGCT {
+	cd $v_downstream_dir
+	Rscript $Rdir/save.gct.r  \
+		merged.final.tsv \
+		merged.final \
+		. \
+	|| return 1
+}
+function Normalize {
+	cd $v_downstream_dir
+	Rscript $Rdir/get.norm.downsize.r \
+		merged.final.RData \
+		merged.final \
+		. \
+		. \
+	|| return 1
+}
+function GetMGS {
+	cd $v_downstream_dir
+	Rscript $Rdir/get.mgs.from.norm.r \
+		merged.final.norm.10M.RData \
+		merged.final \
+		. \
+		. \
+	|| return 1
+}
+
 Main() {
 	sampleId=("$1")
 	fastqgzs+=("$2")
@@ -100,15 +148,33 @@ Main() {
 	Run Map_reads &&
 	Run Quantify
 }
+Downstream() {
+	v_project_dir=$(readlink -f $project_dir_rel)
+	v_downstream_dir="$v_project_dir/Downstream"
+	mkdir -p $v_downstream_dir
 
+	Run PrepareReports counting_report &&
+	Run PrepareReports extended_counting_report &&
+	Run PrepareGCT &&
+	Run SaveGCT &&
+	Run Normalize &&
+	Run GetMGS 
+}
+
+# Load modules
 module load bioinfo-tools
 module load ruby/2.6.2
 module load AlienTrimmer/0.4.0
 module load bowtie2/2.3.4.1
 module load gnuparallel/20180822
 
-ini_file="gut_msp_pipeline.ini"
+# Load ini file
+ini_file=$1
 source $ini_file > /dev/null 2>&1
 cat $ini_file
 
-parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier && rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples
+# Run meteor
+parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples
+
+# Run the downstream analysis
+Downstream

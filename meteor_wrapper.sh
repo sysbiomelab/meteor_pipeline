@@ -1,12 +1,12 @@
 #!/bin/bash -l
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
-#SBATCH --ntasks=8
-#SBATCH --time=12:00:00
+#SBATCH --ntasks=40
+#SBATCH --time=2-00:00:00
 #SBATCH --job-name=Meteor_run
-#SBATCH --mail-user=zn.tportlock@gmail.com
+#SBATCH --mail-user=neelubegum2@gmail.com
 #SBATCH --mail-type=ALL
-#SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/logs/slurm_%j.log 
+#SBATCH --output=/proj/uppstore2019028/Neelu_liver/Meteor_Output/slurm_%j.log 
 set -a
 
 function Run {
@@ -103,4 +103,4 @@ ini_file="bacteria.check.workflow.ini"
 source $ini_file > /dev/null 2>&1
 cat $ini_file
 
-parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples
+parallel -j 6 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples

@@ -1,12 +1,12 @@
 #!/bin/bash -l
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
-#SBATCH --ntasks=40
-#SBATCH --time=2-00:00:00
+#SBATCH --ntasks=20
+#SBATCH --time=1-00:00:00
 #SBATCH --job-name=Meteor_run
+#SBATCH --output=/proj/uppstore2019028/Neelu_liver/Meteor_Output/slurm_%j.log 
 #SBATCH --mail-user=neelubegum2@gmail.com
 #SBATCH --mail-type=ALL
-#SBATCH --output=/proj/uppstore2019028/Neelu_liver/Meteor_Output/slurm_%j.log 
 set -a
 
 function Run {
@@ -17,6 +17,8 @@ function Run {
 }
 function Parse_variables {
 	v_project_dir=$TMPDIR/$sampleId
+	#v_project_dir=$project_dir_rel
+	#v_project_dir=/proj/snic2020-6-153/fungi_results/neelu_project
 	v_workdir="${v_project_dir}/working"
 	v_fastqgz1=$(readlink -f ${fastqgzs[0]})
 	v_fastqgz2=$(readlink -f ${fastqgzs[1]})
@@ -103,4 +105,4 @@ ini_file="bacteria.check.workflow.ini"
 source $ini_file > /dev/null 2>&1
 cat $ini_file
 
-parallel -j 6 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples
+parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples

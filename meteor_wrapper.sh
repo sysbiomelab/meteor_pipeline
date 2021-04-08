@@ -75,7 +75,7 @@ function Quantify {
 		-f ${v_project_dir}/${catalog_type}/profiles \
 		-t smart_shared_reads \
 		-w ${ini_file} \
-		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_vs_hs_10_4_igc2_id95_rmHost_id95_gene_profile/census.dat \
+		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_${meteor_counting_prefix_name}_gene_profile/census.dat \
 	&& rm -r ${v_project_dir}/${catalog_type}/mapping/${sampleId} \
 	|| return 1
 }

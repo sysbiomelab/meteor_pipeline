@@ -15,7 +15,6 @@ function Run {
 	|| (echo "...$(date): $1 - failed"; echo ""; exit 1)
 }
 function Parse_variables {
-	v_downstream_dir="$v_project_dir/Downstream"
 	v_project_dir=$TMPDIR/$sampleId
 	v_workdir="${v_project_dir}/working"
 	v_fastqgz1=$(readlink -f ${fastqgzs[0]})
@@ -26,6 +25,7 @@ function Parse_variables {
 	v_final1="${v_workdir}/${sampleId}_1.fastq"
 	v_final2="${v_workdir}/${sampleId}_2.fastq"
 	v_sampledir=${v_project_dir}/${catalog_type}/sample/${sampleId}
+	v_downstream_dir="$v_project_dir/Downstream"
 	vars=$(compgen -A variable | grep "^v_.*")
 	for var in ${vars}; do echo "${var}=${!var}"; done
 	for var in ${vars}; do if [[ -z "${!var}" ]]; then echo "missing argument ${var}" ; return 1 ; fi ; done
@@ -78,6 +78,9 @@ function Quantify {
 		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_${meteor_counting_prefix_name}_gene_profile/census.dat \
 	&& rm -r ${v_project_dir}/${catalog_type}/mapping/${sampleId} \
 	|| return 1
+}
+function Recover {
+	rsync -aurvP --remove-source-files $v_project_dir $project_dir_rel
 }
 function PrepareReports {
 	inFile=$v_downstream_dir/$1.csv
@@ -137,7 +140,8 @@ Main() {
 	Run Trim &&
 	Run Import &&
 	Run Map_reads &&
-	Run Quantify
+	Run Quantify &&
+	Run Recover
 }
 Downstream() {
 	v_project_dir=$(readlink -f $project_dir_rel)
@@ -174,7 +178,8 @@ srun \
 --job-name=METEOR_run \
 --output=/proj/uppstore2019028/projects/metagenome/theo/logs/slurm_%j.log\
 "
-parallel -j 6 $sr "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples
+#parallel -j 6 $sr "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples
+parallel -j 6 $sr "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier" ::: $samples
 
 # Run the downstream analysis
 $sr Downstream

@@ -1,0 +1,8 @@
+2021-04-09 12:51:30	-	tender_picasso	-	9e124724214bd2d7ce136d6b7dfc2ab5	000ef124-e0ad-4530-95ba-ad968cce942b	nextflow main.nf
+2021-04-09 12:51:56	-	gloomy_kimura	-	7515511e2f878810db0033275beb458f	9f8a9cfc-7b49-4198-96f6-8c1bf02f296e	nextflow main.nf
+2021-04-09 12:52:15	1.6s	elated_babbage	OK	a10180aa62ac1aabffd107035ea5862e	f4d5b265-5b91-4632-bea1-562c3063357f	nextflow main.nf
+2021-04-09 12:52:35	1.1s	special_sax	OK	5486ed8aa6316e9942f4e7522f913639	77ad1622-b3d2-4153-a11f-17026f030203	nextflow main.nf
+2021-04-09 12:53:14	1.7s	chaotic_mandelbrot	OK	5486ed8aa6316e9942f4e7522f913639	b8d295f1-c3e0-489a-a5cf-0388a9901f06	nextflow run main.nf
+2021-04-09 12:54:22	1.9s	kickass_bohr	OK	5486ed8aa6316e9942f4e7522f913639	b8ade547-8917-43af-a861-af732f78694b	nextflow run main.nf
+2021-04-09 12:54:44	1.4s	stupefied_bardeen	OK	8b2f3a08df217da1b33a4ed1e7acfbf9	daf0d468-3303-4024-bb2f-3a726a183990	nextflow run main.nf
+2021-04-09 13:08:17	1.8s	friendly_snyder	OK	8b2f3a08df217da1b33a4ed1e7acfbf9	ac322805-4acb-4c26-bafa-75ffbd136197	nextflow run main.nf

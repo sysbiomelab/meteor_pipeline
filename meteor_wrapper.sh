@@ -1,11 +1,11 @@
 #!/bin/bash -l
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
-#SBATCH --ntasks=10
-#SBATCH --time=12:00:00
+#SBATCH --ntasks=20
+#SBATCH --time=1-00:00:00
 #SBATCH --job-name=METEOR_run_batch
-#SBATCH --mail-user=zn.tportlock@gmail.com
-#SBATCH --mail-type=ALL
+##SBATCH --mail-user=zn.tportlock@gmail.com
+##SBATCH --mail-type=ALL
 set -a
 
 function Run {
@@ -169,17 +169,7 @@ source $ini_file > /dev/null 2>&1
 cat $ini_file
 
 # Run meteor
-sr="\
-srun \
---account=snic2020-5-222 \
---partition=core \
---ntasks=5 \
---time=12:00:00 \
---job-name=METEOR_run \
---output=/proj/uppstore2019028/projects/metagenome/theo/logs/slurm_%j.log\
-"
-#parallel -j 6 $sr "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier ; rsync -aurvP --remove-source-files $TMPDIR/{}/ $project_dir_rel" ::: $samples
-parallel -j 6 $sr "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier" ::: $samples
+parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier" ::: $samples
 
 # Run the downstream analysis
-$sr Downstream
+#Downstream

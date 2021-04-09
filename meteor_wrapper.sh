@@ -4,8 +4,8 @@
 #SBATCH --ntasks=20
 #SBATCH --time=1-00:00:00
 #SBATCH --job-name=METEOR_run_batch
-##SBATCH --mail-user=zn.tportlock@gmail.com
-##SBATCH --mail-type=ALL
+#SBATCH --mail-user=zn.tportlock@gmail.com
+#SBATCH --mail-type=ALL
 set -a
 
 function Run {
@@ -172,4 +172,4 @@ cat $ini_file
 parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier" ::: $samples
 
 # Run the downstream analysis
-#Downstream
+Downstream

@@ -6,3 +6,6 @@
 2021-04-09 12:54:22	1.9s	kickass_bohr	OK	5486ed8aa6316e9942f4e7522f913639	b8ade547-8917-43af-a861-af732f78694b	nextflow run main.nf
 2021-04-09 12:54:44	1.4s	stupefied_bardeen	OK	8b2f3a08df217da1b33a4ed1e7acfbf9	daf0d468-3303-4024-bb2f-3a726a183990	nextflow run main.nf
 2021-04-09 13:08:17	1.8s	friendly_snyder	OK	8b2f3a08df217da1b33a4ed1e7acfbf9	ac322805-4acb-4c26-bafa-75ffbd136197	nextflow run main.nf
+2021-04-09 13:54:04	2.5s	backstabbing_heisenberg	ERR	d54508fb4577b3fc013d49193b25b519	10a5c191-13ed-4dc6-b098-5e941d38e984	nextflow run main.nf
+2021-04-09 13:54:21	2.6s	tender_ekeblad	ERR	380af2d60b386d12179e9d899cc2ec32	af6a1fee-bfb0-4059-8984-112f15be1023	nextflow run main.nf
+2021-04-09 13:57:14	2s	high_gilbert	ERR	f1c115d1f344febee1e97670dcf02632	bdc38104-6a82-4c9c-b412-f655ab326e0b	nextflow run main.nf

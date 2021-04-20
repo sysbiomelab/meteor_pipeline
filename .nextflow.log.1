@@ -1,74 +1,44 @@
-Apr-09 13:54:20.364 [main] DEBUG nextflow.cli.Launcher - $> nextflow run main.nf
-Apr-09 13:54:20.518 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 20.10.0
-Apr-09 13:54:20.537 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [tender_ekeblad] - revision: 380af2d60b
-Apr-09 13:54:20.574 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /home/theo/postdoc/meteor_pipeline/nextflow.config
-Apr-09 13:54:20.575 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/theo/postdoc/meteor_pipeline/nextflow.config
-Apr-09 13:54:20.625 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
-Apr-09 13:54:21.914 [main] DEBUG nextflow.Session - Session uuid: af6a1fee-bfb0-4059-8984-112f15be1023
-Apr-09 13:54:21.915 [main] DEBUG nextflow.Session - Run name: tender_ekeblad
-Apr-09 13:54:21.916 [main] DEBUG nextflow.Session - Executor pool size: 4
-Apr-09 13:54:21.938 [main] DEBUG nextflow.cli.CmdRun - 
+Apr-11 18:10:05.009 [main] DEBUG nextflow.cli.Launcher - $> nextflow main.nf
+Apr-11 18:10:05.145 [main] INFO  nextflow.cli.CmdRun - N E X T F L O W  ~  version 20.10.0
+Apr-11 18:10:05.159 [main] INFO  nextflow.cli.CmdRun - Launching `main.nf` [nostalgic_lavoisier] - revision: 163d2a09d2
+Apr-11 18:10:05.185 [main] DEBUG nextflow.config.ConfigBuilder - Found config local: /home/theo/postdoc/meteor_pipeline/nextflow.config
+Apr-11 18:10:05.186 [main] DEBUG nextflow.config.ConfigBuilder - Parsing config file: /home/theo/postdoc/meteor_pipeline/nextflow.config
+Apr-11 18:10:05.216 [main] DEBUG nextflow.config.ConfigBuilder - Applying config profile: `standard`
+Apr-11 18:10:06.034 [main] DEBUG nextflow.Session - Session uuid: 4e46ea00-f3cd-4418-8276-1b2554936582
+Apr-11 18:10:06.035 [main] DEBUG nextflow.Session - Run name: nostalgic_lavoisier
+Apr-11 18:10:06.035 [main] DEBUG nextflow.Session - Executor pool size: 4
+Apr-11 18:10:06.048 [main] DEBUG nextflow.cli.CmdRun - 
   Version: 20.10.0 build 5430
   Created: 01-11-2020 15:14 UTC (15:14 BST)
   System: Linux 5.11.11-arch1-1
   Runtime: Groovy 3.0.5 on OpenJDK 64-Bit Server VM 1.8.0_282-b08
   Encoding: UTF-8 (UTF-8)
-  Process: 7588@laptop [192.168.0.21]
-  CPUs: 4 - Mem: 3.6 GB (505.4 MB) - Swap: 10 GB (9.8 GB)
-Apr-09 13:54:21.968 [main] DEBUG nextflow.Session - Work-dir: /home/theo/postdoc/meteor_pipeline/work [ext2/ext3]
-Apr-09 13:54:21.968 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /home/theo/postdoc/meteor_pipeline/bin
-Apr-09 13:54:22.043 [main] DEBUG nextflow.Session - Observer factory: TowerFactory
-Apr-09 13:54:22.047 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
-Apr-09 13:54:22.432 [main] DEBUG nextflow.Session - Session start invoked
-Apr-09 13:54:22.707 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
-Apr-09 13:54:22.745 [main] DEBUG nextflow.Session - Workflow process names [dsl1]: Parse_variables
-Apr-09 13:54:22.794 [main] DEBUG nextflow.executor.ExecutorFactory - << taskConfig executor: null
-Apr-09 13:54:22.795 [main] DEBUG nextflow.executor.ExecutorFactory - >> processorType: 'local'
-Apr-09 13:54:22.803 [main] DEBUG nextflow.executor.Executor - [warm up] executor > local
-Apr-09 13:54:22.811 [main] DEBUG n.processor.LocalPollingMonitor - Creating local task monitor for executor 'local' > cpus=4; memory=3.6 GB; capacity=4; pollInterval=100ms; dumpInterval=5m
-Apr-09 13:54:23.067 [main] DEBUG nextflow.script.ScriptRunner - > Await termination 
-Apr-09 13:54:23.067 [main] DEBUG nextflow.Session - Session await
-Apr-09 13:54:23.312 [Task submitter] DEBUG nextflow.executor.LocalTaskHandler - Launch cmd line: /bin/bash -ue .command.run
-Apr-09 13:54:23.320 [Task submitter] INFO  nextflow.Session - [4c/be8d11] Submitted process > Parse_variables
-Apr-09 13:54:23.360 [Task monitor] DEBUG n.processor.TaskPollingMonitor - Task completed > TaskHandler[id: 1; name: Parse_variables; status: COMPLETED; exit: 1; error: -; workDir: /home/theo/postdoc/meteor_pipeline/work/4c/be8d11df61be90bced9409505856a1]
-Apr-09 13:54:23.405 [Task monitor] ERROR nextflow.processor.TaskProcessor - Error executing process > 'Parse_variables'
-
-Caused by:
-  Process `Parse_variables` terminated with an error exit status (1)
-
-Command executed:
-
-  params.v_project_dir="test/$params.sampleId"
-  params.v_workdir="${params.v_project_dir}/working"
-  // params.v_fastqgz1=$(readlink -f ${params.fastqgzs[0]})
-  // params.v_fastqgz2=$(readlink -f ${fastqgzs[1]})
-  // params.v_fastqgz1_unzip="${v_workdir}/$(basename $v_fastqgz1 .gz).unzipped"
-  // params.v_fastqgz2_unzip="${v_workdir}/$(basename $v_fastqgz2 .gz).unzipped"
-  // params.v_trimmedS="${v_workdir}/${sampleId}.trimmed.s.fastq"
-  // params.v_final1="${v_workdir}/${sampleId}_1.fastq"
-  // params.v_final2="${v_workdir}/${sampleId}_2.fastq"
-  // params.v_sampledir=${v_project_dir}/${catalog_type}/sample/${sampleId}
-  // params.v_downstream_dir="$v_project_dir/Downstream"
-  // vars=$(compgen -A variable | grep "^v_.*")
-  // for var in ${vars}; do echo "${var}=${!var}"; done
-  // for var in ${vars}; do if [[ -z "${!var}" ]]; then echo "missing argument ${var}" ; return 1 ; fi ; done
-
-Command exit status:
-  1
-
-Command output:
-  (empty)
-
-Command error:
-  .command.sh: line 2: params: unbound variable
-
-Work dir:
-  /home/theo/postdoc/meteor_pipeline/work/4c/be8d11df61be90bced9409505856a1
-
-Tip: you can try to figure out what's wrong by changing to the process work dir and showing the script file named `.command.sh`
-Apr-09 13:54:23.423 [main] DEBUG nextflow.Session - Session await > all process finished
-Apr-09 13:54:23.427 [Task monitor] DEBUG nextflow.Session - Session aborted -- Cause: Process `Parse_variables` terminated with an error exit status (1)
-Apr-09 13:54:23.457 [main] DEBUG nextflow.Session - Session await > all barriers passed
-Apr-09 13:54:23.470 [main] DEBUG nextflow.trace.WorkflowStatsObserver - Workflow completed > WorkflowStats[succeededCount=0; failedCount=1; ignoredCount=0; cachedCount=0; pendingCount=0; submittedCount=0; runningCount=0; retriesCount=0; abortedCount=0; succeedDuration=0ms; failedDuration=24ms; cachedDuration=0ms;loadCpus=0; loadMemory=0; peakRunning=1; peakCpus=1; peakMemory=0; ]
-Apr-09 13:54:23.634 [main] DEBUG nextflow.CacheDB - Closing CacheDB done
-Apr-09 13:54:23.653 [main] DEBUG nextflow.script.ScriptRunner - > Execution complete -- Goodbye
+  Process: 9849@laptop [192.168.0.21]
+  CPUs: 4 - Mem: 3.6 GB (246.7 MB) - Swap: 10 GB (10 GB)
+Apr-11 18:10:06.066 [main] DEBUG nextflow.Session - Work-dir: /home/theo/postdoc/meteor_pipeline/work [ext2/ext3]
+Apr-11 18:10:06.066 [main] DEBUG nextflow.Session - Script base path does not exist or is not a directory: /home/theo/postdoc/meteor_pipeline/bin
+Apr-11 18:10:06.115 [main] DEBUG nextflow.Session - Observer factory: TowerFactory
+Apr-11 18:10:06.117 [main] DEBUG nextflow.Session - Observer factory: DefaultObserverFactory
+Apr-11 18:10:06.454 [main] DEBUG nextflow.Session - Session start invoked
+Apr-11 18:10:06.675 [main] DEBUG nextflow.script.ScriptRunner - > Launching execution
+Apr-11 18:10:06.698 [main] DEBUG nextflow.Session - Workflow process names [dsl1]: Parse_variables
+Apr-11 18:10:06.704 [main] DEBUG nextflow.Session - Session aborted -- Cause: No signature of method: Script_27a059c7.$() is applicable for argument types: (Script_27a059c7$_runScript_closure1) values: [Script_27a059c7$_runScript_closure1@7578e06a]
+Possible solutions: is(java.lang.Object), run(), run(), any(), any(groovy.lang.Closure), tap(groovy.lang.Closure)
+Apr-11 18:10:06.717 [main] ERROR nextflow.cli.Launcher - @unknown
+groovy.lang.MissingMethodException: No signature of method: Script_27a059c7.$() is applicable for argument types: (Script_27a059c7$_runScript_closure1) values: [Script_27a059c7$_runScript_closure1@7578e06a]
+Possible solutions: is(java.lang.Object), run(), run(), any(), any(groovy.lang.Closure), tap(groovy.lang.Closure)
+	at org.codehaus.groovy.runtime.ScriptBytecodeAdapter.unwrap(ScriptBytecodeAdapter.java:70)
+	at org.codehaus.groovy.runtime.callsite.PogoMetaClassSite.callCurrent(PogoMetaClassSite.java:80)
+	at org.codehaus.groovy.runtime.callsite.CallSiteArray.defaultCallCurrent(CallSiteArray.java:51)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:171)
+	at org.codehaus.groovy.runtime.callsite.AbstractCallSite.callCurrent(AbstractCallSite.java:185)
+	at Script_27a059c7.runScript(Script_27a059c7:15)
+	at nextflow.script.BaseScript.runDsl1(BaseScript.groovy:164)
+	at nextflow.script.BaseScript.run(BaseScript.groovy:200)
+	at nextflow.script.ScriptParser.runScript(ScriptParser.groovy:219)
+	at nextflow.script.ScriptRunner.run(ScriptRunner.groovy:219)
+	at nextflow.script.ScriptRunner.execute(ScriptRunner.groovy:127)
+	at nextflow.cli.CmdRun.run(CmdRun.groovy:277)
+	at nextflow.cli.Launcher.run(Launcher.groovy:466)
+	at nextflow.cli.Launcher.main(Launcher.groovy:648)
+Apr-11 18:10:06.723 [main] WARN  nextflow.script.ScriptBinding - Access to undefined parameter `tempfile` -- Initialise it to a default value eg. `params.tempfile = some_value`

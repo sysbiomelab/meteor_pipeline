@@ -2,7 +2,7 @@
 #SBATCH --account=snic2020-5-222
 #SBATCH --partition=core
 #SBATCH --ntasks=20
-#SBATCH --time=1-00:00:00
+#SBATCH --time=2-00:00:00
 #SBATCH --job-name=METEOR_run_batch
 #SBATCH --mail-user=zn.tportlock@gmail.com
 #SBATCH --mail-type=ALL
@@ -80,7 +80,7 @@ function Quantify {
 	|| return 1
 }
 function Recover {
-	rsync -aurvP --remove-source-files $v_project_dir $project_dir_rel
+	rsync -aurvP --remove-source-files $v_project_dir/ $project_dir_rel
 }
 function PrepareReports {
 	inFile=$v_downstream_dir/$1.csv

@@ -75,7 +75,7 @@ function Quantify {
 		-f ${v_project_dir}/${catalog_type}/profiles \
 		-t smart_shared_reads \
 		-w ${ini_file} \
-		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_${meteor_counting_prefix_name}_gene_profile/census.dat \
+		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_${v_prefix}_gene_profile/census.dat \
 	&& rm -r ${v_project_dir}/${catalog_type}/mapping/${sampleId} \
 	|| return 1
 }
@@ -134,13 +134,14 @@ Main() {
 	fastqgzs+=("$2")
 	fastqgzs+=("$3")
 
-	Run Parse_variables &&
-	Run Init &&
-	Run Decompress &&
-	Run Trim &&
-	Run Import &&
-	Run Map_reads &&
-	Run Quantify &&
+	Run Parse_variables && \
+	Run Init && \
+	Run Recover && \
+	Run Decompress && \
+	Run Trim && \
+	Run Import && \
+	Run Map_reads && \
+	Run Quantify && \
 	Run Recover
 }
 Downstream() {
@@ -166,7 +167,11 @@ module load gnuparallel/20180822
 # Load ini file
 ini_file=$1
 source $ini_file > /dev/null 2>&1
+v_prefix=$( grep "meteor.counting.prefix.name" $ini_file | sed "s/^.*=//g" )
 cat $ini_file
+
+# Start
+mkdir -p $project_dir_rel
 
 # Run meteor
 parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier" ::: $samples

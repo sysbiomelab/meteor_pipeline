@@ -1,6 +1,7 @@
 #!/bin/bash -l
-#SBATCH --account=snic2020-5-222
-#SBATCH --partition=core
+##SBATCH --account=snic2020-5-222
+##SBATCH --partition=core
+#SBATCH --partition=shared
 #SBATCH --ntasks=20
 #SBATCH --time=2-00:00:00
 #SBATCH --job-name=METEOR_run_batch

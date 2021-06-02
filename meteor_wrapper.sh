@@ -1,11 +1,13 @@
 #!/bin/bash -l
-#SBATCH --account=snic2020-5-222
+#SBATCH --account=snic2021-5-248
 #SBATCH --partition=core
-#SBATCH --ntasks=20
-#SBATCH --time=3-00:00:00
-#SBATCH --job-name=METEOR_run_batch
+#SBATCH --ntasks=10
+#SBATCH --time=1-00:00:00
+#SBATCH --job-name=TEST1
 #SBATCH --mail-user=zn.tportlock@gmail.com
 #SBATCH --mail-type=ALL
+##SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/newscripts/meteor/logs/%j 
+
 set -a
 
 function Run {
@@ -16,7 +18,7 @@ function Run {
 }
 function Parse_variables {
 	v_project_dir=$TMPDIR/$sampleId
-	v_workdir="${v_project_dir}/working"
+	v_workdir="${v_project_dir}/working/$sampleId"
 	v_fastqgz1=$(readlink -f ${fastqgzs[0]})
 	v_fastqgz2=$(readlink -f ${fastqgzs[1]})
 	v_fastqgz1_unzip="${v_workdir}/$(basename $v_fastqgz1 .gz).unzipped"
@@ -32,11 +34,17 @@ function Parse_variables {
 }
 function Init {
 	mkdir -p ${v_project_dir}/${catalog_type}/{sample,mapping,profiles}
+	mkdir -p $TMPDIR/reference
 	mkdir -p ${v_workdir}
 }
+function Send {
+	cp $v_fastqgz1 ${v_workdir}
+	cp $v_fastqgz2 ${v_workdir}
+	cp -r ${reference_dir}/* $TMPDIR/reference
+}
 function Decompress {
-	zcat $v_fastqgz1 > $v_fastqgz1_unzip & pid1=$!
-	zcat $v_fastqgz2 > $v_fastqgz2_unzip & pid2=$!
+	zcat ${v_workdir}/$(basename $v_fastqgz1) > $v_fastqgz1_unzip & pid1=$!
+	zcat ${v_workdir}/$(basename $v_fastqgz2) > $v_fastqgz2_unzip & pid2=$!
 	trap "kill -2 $pid1 $pid2" SIGINT
 	wait
 }
@@ -75,7 +83,7 @@ function Quantify {
 		-f ${v_project_dir}/${catalog_type}/profiles \
 		-t smart_shared_reads \
 		-w ${ini_file} \
-		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_${meteor_counting_prefix_name}_gene_profile/census.dat \
+		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_${v_prefix}_gene_profile/census.dat \
 	&& rm -r ${v_project_dir}/${catalog_type}/mapping/${sampleId} \
 	|| return 1
 }
@@ -85,7 +93,7 @@ function Recover {
 function PrepareReports {
 	inFile=$v_downstream_dir/$1.csv
 	outFile=$v_downstream_dir/$1.final.csv
-	cat $v_project_dir/$v_catalog_type/profiles/*$1.csv > $inFile
+	cat $v_project_dir/$catalog_type/profiles/*$1.csv > $inFile
 	head -1 $inFile > ${outFile}.header
 	cat $inFile | grep -v sample > ${outFile}.body
 	cat ${outFile}.header ${outFile}.body > ${outFile}
@@ -94,7 +102,7 @@ function PrepareReports {
 function PrepareGCT {
 	inFile=$v_downstream_dir/merged.tsv
 	outFile=$v_downstream_dir/merged.final.tsv
-	paste $v_project_dir/$v_catalog_type/profiles/*.tsv > $inFile
+	paste $v_project_dir/$catalog_type/profiles/*.tsv > $inFile
 	width=$(head -1 $inFile | awk '{print NF}')
 	echo $width
 	cat $inFile | cut -f1 | sed 's/\#id_fragment/gene_id/g' > ${outFile}.gene
@@ -103,39 +111,39 @@ function PrepareGCT {
 	rm ${inFile} ${outFile}.gene ${outFile}.expr
 }
 function SaveGCT {
-	cd $v_downstream_dir
+	#cd $v_downstream_dir
 	Rscript $Rdir/save.gct.r  \
-		merged.final.tsv \
+		$v_downstream_dir/merged.final.tsv \
 		merged.final \
-		. \
+		$v_downstream_dir \
 	|| return 1
 }
 function Normalize {
-	cd $v_downstream_dir
+	#cd $v_downstream_dir
 	Rscript $Rdir/get.norm.downsize.r \
-		merged.final.RData \
+		$v_downstream_dir/merged.final.RData \
 		merged.final \
-		. \
-		. \
+		$v_downstream_dir \
+		$v_downstream_dir \
 	|| return 1
 }
 function GetMGS {
-	cd $v_downstream_dir
-	Rscript $Rdir/get.mgs.from.norm.r \
-		merged.final.norm.10M.RData \
+	Rscript $Rdir/get.oral.mgs.from.norm.r \
+		$v_downstream_dir/merged.final.norm.10M.RData \
 		merged.final \
-		. \
-		. \
+		$v_downstream_dir \
+		$v_downstream_dir \
 	|| return 1
 }
 
 Main() {
-	sampleId=("$1")
+	sampleId=$(basename $1 .fastq.gz)
 	fastqgzs+=("$2")
 	fastqgzs+=("$3")
 
 	Run Parse_variables &&
 	Run Init &&
+	Run Send &&
 	Run Decompress &&
 	Run Trim &&
 	Run Import &&
@@ -161,15 +169,20 @@ module load bioinfo-tools
 module load ruby/2.6.2
 module load AlienTrimmer/0.4.0
 module load bowtie2/2.3.4.1
-module load gnuparallel/20180822
 
 # Load ini file
+sed -i "s|meteor.reference.dir=.*|meteor.reference.dir=$TMPDIR/reference|g" $1
 ini_file=$1
+
 source $ini_file > /dev/null 2>&1
+v_prefix=$( grep "meteor.counting.prefix.name" $ini_file | sed "s/^.*=//g" )
 cat $ini_file
 
+# Start
+mkdir -p $project_dir_rel
+
 # Run meteor
-# parallel -j 3 "Main {} $seq_data_dir/{}$forward_identifier $seq_data_dir/{}$reverse_identifier" ::: $samples
+Main $sample $seq_data_dir/${sample}${forward_identifier} $seq_data_dir/${sample}${reverse_identifier}
 
 # Run the downstream analysis
-Downstream
+#Downstream

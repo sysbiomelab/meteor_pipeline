@@ -13,7 +13,7 @@ It is required that the machine that runs this code has installed:
 None required, simply clone this repository
 
 ## Runtime
-ensure that the wrapper script has the slurm configurations that you require. As a rule of thumb, each sbatch command should run for 12 hrs X number of samples ran at once + 12 hrs
+ensure that the wrapper script has the slurm configurations that you require. As a rule of thumb, each sbatch command should run for 5 hrs. 
 modify the workflow.ini file (without spaces) to source the necessary programs, sequencing data, and project location and run with:
 ```bash
 sbatch meteor_wrapper.sh gut_msp_pipeline.ini

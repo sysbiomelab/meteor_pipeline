@@ -1,0 +1,374 @@
+This is METAFONT, Version 2.718281 (TeX Live 2013) (base=mf 2020.5.6)  8 JUN 2021 19:10
+**slurm-20329990.out slurm-20330206.out slurm-20349667.out slurm-20349668.out s
+lurm-20349669.out slurm-20349670.out slurm-20349671.out slurm-20349672.out slur
+m-20349673.out slurm-20349674.out slurm-20349675.out slurm-20349676.out slurm-2
+0349677.out slurm-20349678.out slurm-20349679.out slurm-20349680.out slurm-2034
+9681.out slurm-20349682.out slurm-20349683.out slurm-20349684.out slurm-2034968
+5.out slurm-20349686.out slurm-20349687.out slurm-20349688.out slurm-20349689.o
+ut slurm-20349690.out slurm-20349691.out slurm-20349692.out slurm-20349693.out 
+slurm-20349694.out slurm-20349695.out logs/
+(slurm-20329990.out
+! A statement can't begin with `..'.
+<to be read again> 
+                   ..
+...->..
+       tension.atleast1..
+l.1 ...
+       Sat Jun  5 13:08:37 CEST 2021: - begin running script
+? 
+! Extra tokens will be flushed.
+<to be read again> 
+                   ..
+...->..
+       tension.atleast1..
+l.1 ...
+       Sat Jun  5 13:08:37 CEST 2021: - begin running script
+? 
+! Interruption.
+...->..
+       tension.atleast1..
+l.1 ...
+       Sat Jun  5 13:08:37 CEST 2021: - begin running script
+? ^^F
+Type <return> to proceed, S to scroll future error messages,
+R to run without stopping, Q to run quietly,
+I to insert something, E to edit your file,
+H for help, X to quit.
+? 
+! Enormous number has been reduced.
+l.10 ##SBATCH --output=/proj/uppstore2019028
+                                            /projects/metagenome/theo/newscr...
+
+? 
+>> echo
+! Isolated expression.
+<to be read again> 
+                   ""
+l.17 	&& (echo "...$(date): $1 - done"; echo ""
+                                               ) \
+? 
+! Extra tokens will be flushed.
+<to be read again> 
+                   ""
+l.17 	&& (echo "...$(date): $1 - done"; echo ""
+                                               ) \
+? 
+>> echo
+! Isolated expression.
+<to be read again> 
+                   ""
+l.18 	|| (echo "...$(date): $1 - failed"; echo ""
+                                                 ; exit 1)
+? 
+! Extra tokens will be flushed.
+<to be read again> 
+                   ""
+l.18 	|| (echo "...$(date): $1 - failed"; echo ""
+                                                 ; exit 1)
+? 
+>> exit1
+! Isolated expression.
+<to be read again> 
+                   )
+l.18 ......$(date): $1 - failed"; echo ""; exit 1)
+                                                  
+? 
+! Extra tokens will be flushed.
+<to be read again> 
+                   )
+l.18 ......$(date): $1 - failed"; echo ""; exit 1)
+                                                  
+? 
+>> do.echo
+! Isolated expression.
+<to be read again> 
+                   "${var}=${!var}"
+l.33 	for var in ${vars}; do echo "${var}=${!var}"
+                                                  ; done
+? 
+! Extra tokens will be flushed.
+<to be read again> 
+                   "${var}=${!var}"
+l.33 	for var in ${vars}; do echo "${var}=${!var}"
+                                                  ; done
+? 
+! Missing `=' has been inserted.
+<to be read again> 
+                   in
+l.34 	for var in
+                 ${vars}; do if [[ -z "${!var}" ]]; then echo "missing argum...
+
+? 
+! Missing `:' has been inserted.
+<to be read again> 
+                   {
+l.34 	for var in ${
+                   vars}; do if [[ -z "${!var}" ]]; then echo "missing argum...
+
+? 
+! Enormous number has been reduced.
+l.202 sample=P18161
+                   _280/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_280_S1...
+
+? 
+! Enormous number has been reduced.
+l.202 sample=P18161_280/02-FASTQ/201104
+                                       _A00187_0373_BHGM2CDSXY/P18161_280_S1...
+
+? 
+! Enormous number has been reduced.
+l.202 ...ASTQ/201104_A00187_0373_BHGM2CDSXY/P18161
+                                                  _280_S147_L004
+? 
+! Enormous number has been reduced.
+l.215 meteor.reference.dir=/scratch/20329990
+                                            /reference
+? 
+! Enormous number has been reduced.
+l.228 meteor.matches=10000
+                          
+? 
+! Enormous number has been reduced.
+l.258 v_downstream_dir=/scratch/20329990
+                                        /P18161_280_S147_L004/Downstream
+? 
+! Enormous number has been reduced.
+l.258 v_downstream_dir=/scratch/20329990/P18161
+                                               _280_S147_L004/Downstream
+? 
+! Enormous number has been reduced.
+l.259 ...c2020-6-153/nobackup/delivery04021/P18161
+                                                  /P18161_280/02-FASTQ/20110...
+
+? 
+! Enormous number has been reduced.
+l.259 ...-153/nobackup/delivery04021/P18161/P18161
+                                                  _280/02-FASTQ/201104_A0018...
+
+? 
+! Enormous number has been reduced.
+l.259 ...ry04021/P18161/P18161_280/02-FASTQ/201104
+                                                  _A00187_0373_BHGM2CDSXY/P1...
+
+? 
+! Enormous number has been reduced.
+l.259 ...ASTQ/201104_A00187_0373_BHGM2CDSXY/P18161
+                                                  _280_S147_L004_R1_001.fast...
+
+? 
+! Enormous number has been reduced.
+l.260 v_fastqgz1_unzip=/scratch/20329990
+                                        /P18161_280_S147_L004/working/P18161...
+
+? 
+! Enormous number has been reduced.
+l.260 v_fastqgz1_unzip=/scratch/20329990/P18161
+                                               _280_S147_L004/working/P18161...
+
+? 
+! Enormous number has been reduced.
+l.260 ...29990/P18161_280_S147_L004/working/P18161
+                                                  _280_S147_L004/P18161_280_...
+
+? 
+! Enormous number has been reduced.
+l.260 ..._L004/working/P18161_280_S147_L004/P18161
+                                                  _280_S147_L004_R1_001.fast...
+
+? 
+! Enormous number has been reduced.
+l.261 ...c2020-6-153/nobackup/delivery04021/P18161
+                                                  /P18161_280/02-FASTQ/20110...
+
+? 
+! Enormous number has been reduced.
+l.261 ...-153/nobackup/delivery04021/P18161/P18161
+                                                  _280/02-FASTQ/201104_A0018...
+
+? 
+! Enormous number has been reduced.
+l.261 ...ry04021/P18161/P18161_280/02-FASTQ/201104
+                                                  _A00187_0373_BHGM2CDSXY/P1...
+
+? 
+! Enormous number has been reduced.
+l.261 ...ASTQ/201104_A00187_0373_BHGM2CDSXY/P18161
+                                                  _280_S147_L004_R2_001.fast...
+
+? 
+! Enormous number has been reduced.
+l.262 v_fastqgz2_unzip=/scratch/20329990
+                                        /P18161_280_S147_L004/working/P18161...
+
+? 
+! Enormous number has been reduced.
+l.262 v_fastqgz2_unzip=/scratch/20329990/P18161
+                                               _280_S147_L004/working/P18161...
+
+? 
+! Enormous number has been reduced.
+l.262 ...29990/P18161_280_S147_L004/working/P18161
+                                                  _280_S147_L004/P18161_280_...
+
+? 
+! Enormous number has been reduced.
+l.262 ..._L004/working/P18161_280_S147_L004/P18161
+                                                  _280_S147_L004_R2_001.fast...
+
+? 
+! Enormous number has been reduced.
+l.263 v_final1=/scratch/20329990
+                                /P18161_280_S147_L004/working/P18161_280_S14...
+
+? 
+! Enormous number has been reduced.
+l.263 v_final1=/scratch/20329990/P18161
+                                       _280_S147_L004/working/P18161_280_S14...
+
+? 
+! Enormous number has been reduced.
+l.263 ...29990/P18161_280_S147_L004/working/P18161
+                                                  _280_S147_L004/P18161_280_...
+
+? 
+! Enormous number has been reduced.
+l.263 ..._L004/working/P18161_280_S147_L004/P18161
+                                                  _280_S147_L004_1.fastq
+? 
+! Enormous number has been reduced.
+l.264 v_final2=/scratch/20329990
+                                /P18161_280_S147_L004/working/P18161_280_S14...
+
+? 
+! Enormous number has been reduced.
+l.264 v_final2=/scratch/20329990/P18161
+                                       _280_S147_L004/working/P18161_280_S14...
+
+? 
+! Enormous number has been reduced.
+l.264 ...29990/P18161_280_S147_L004/working/P18161
+                                                  _280_S147_L004/P18161_280_...
+
+? 
+! Enormous number has been reduced.
+l.264 ..._L004/working/P18161_280_S147_L004/P18161
+                                                  _280_S147_L004_2.fastq
+? 
+! Enormous number has been reduced.
+l.266 v_project_dir=/scratch/20329990
+                                     /P18161_280_S147_L004
+? 
+! Enormous number has been reduced.
+l.266 v_project_dir=/scratch/20329990/P18161
+                                            _280_S147_L004
+? 
+! Enormous number has been reduced.
+l.267 v_sampledir=/scratch/20329990
+                                   /P18161_280_S147_L004/oral_catalog/sample...
+
+? 
+! Enormous number has been reduced.
+l.267 v_sampledir=/scratch/20329990/P18161
+                                          _280_S147_L004/oral_catalog/sample...
+
+? 
+! Enormous number has been reduced.
+l.267 ..._280_S147_L004/oral_catalog/sample/P18161
+                                                  _280_S147_L004
+? 
+! Enormous number has been reduced.
+l.268 v_trimmedS=/scratch/20329990
+                                  /P18161_280_S147_L004/working/P18161_280_S...
+
+? 
+! Enormous number has been reduced.
+l.268 v_trimmedS=/scratch/20329990/P18161
+                                         _280_S147_L004/working/P18161_280_S...
+
+? 
+! Enormous number has been reduced.
+l.268 ...29990/P18161_280_S147_L004/working/P18161
+                                                  _280_S147_L004/P18161_280_...
+
+? 
+! Enormous number has been reduced.
+l.268 ..._L004/working/P18161_280_S147_L004/P18161
+                                                  _280_S147_L004.trimmed.s.f...
+
+? 
+! Enormous number has been reduced.
+l.269 v_workdir=/scratch/20329990
+                                 /P18161_280_S147_L004/working/P18161_280_S1...
+
+? 
+! Enormous number has been reduced.
+l.269 v_workdir=/scratch/20329990/P18161
+                                        _280_S147_L004/working/P18161_280_S1...
+
+? 
+! Enormous number has been reduced.
+l.269 ...29990/P18161_280_S147_L004/working/P18161
+                                                  _280_S147_L004
+? 
+! Enormous number has been reduced.
+l.282 ...3)  /  439 fwd alien sequence(s)  /  7856
+                                                   fwd k-mers (k=10)  /  439...
+
+? 
+! Enormous number has been reduced.
+l.282 ...0)  /  439 rev alien sequence(s)  /  7856
+                                                   rev k-mers (k=10)
+? 
+! Enormous number has been reduced.
+l.350 Import /scratch/20329990
+                              /P18161_280_S147_L004/oral_catalog/sample/P181...
+
+? 
+! Enormous number has been reduced.
+l.350 Import /scratch/20329990/P18161
+                                     _280_S147_L004/oral_catalog/sample/P181...
+
+? 
+! Enormous number has been reduced.
+l.350 ..._280_S147_L004/oral_catalog/sample/P18161
+                                                  _280_S147_L004_2.fastq
+? 
+! Enormous number has been reduced.
+l.351 Import /scratch/20329990
+                              /P18161_280_S147_L004/oral_catalog/sample/P181...
+
+? 
+! Enormous number has been reduced.
+l.351 Import /scratch/20329990/P18161
+                                     _280_S147_L004/oral_catalog/sample/P181...
+
+? 
+! Enormous number has been reduced.
+l.351 ..._280_S147_L004/oral_catalog/sample/P18161
+                                                  _280_S147_L004_1.fastq
+? 
+! Enormous number has been reduced.
+l.356 /proj/uppstore2019028
+                           /projects/metagenome/software/meteor_linux_2019.1...
+
+? 
+! Enormous number has been reduced.
+l.357 /proj/uppstore2019028
+                           /projects/metagenome/software/meteor_linux_2019.1...
+
+? 
+! Enormous number has been reduced.
+l.357 ... world writable dir /proj/uppstore2019028
+                                                  /Helen/meteor-linux.2019-1...
+
+? 
+! Enormous number has been reduced.
+l.357 ...eor-linux.2019-11-04 in PATH, mode 042777
+                                                  
+? 
+! Emergency stop.
+l.357 ...eor-linux.2019-11-04 in PATH, mode 042777
+                                                  
+End of file on the terminal!
+
+

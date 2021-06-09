@@ -2,8 +2,8 @@
 #SBATCH --account=snic2021-5-248
 #SBATCH --partition=core
 #SBATCH --ntasks=10
-#SBATCH --time=1-00:00:00
-#SBATCH --job-name=TEST1
+#SBATCH --time=3-00:00:00
+#SBATCH --job-name=test_with_quotes
 #SBATCH --mail-user=zn.tportlock@gmail.com
 #SBATCH --mail-type=ALL
 ##SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/newscripts/meteor/logs/%j 
@@ -11,36 +11,41 @@
 set -a
 
 function Run {
-	echo "...$(date): $1 - begin"
+	start=$(date +%s)
+	echo "...$(date): $1 - begin"; echo ""
 	$@ \
 	&& (echo "...$(date): $1 - done"; echo "") \
-	|| (echo "...$(date): $1 - failed"; echo ""; exit 1)
+	|| (echo "...$(date): $1 - failed"; echo "")
+	end=$(date +%s)
+	echo "...time taken: $((end-start))"; echo ""
 }
 function Parse_variables {
-	v_project_dir=$TMPDIR/$sampleId
-	v_workdir="${v_project_dir}/working/$sampleId"
-	v_fastqgz1=$(readlink -f ${fastqgzs[0]})
-	v_fastqgz2=$(readlink -f ${fastqgzs[1]})
+	v_project_dir="$TMPDIR"
+	v_workdir="${v_project_dir}/working"
+	v_refdir="${v_project_dir}/reference"
+	v_fastqgz1="$(readlink -f ${fastqgzs[0]})"
+	v_fastqgz2="$(readlink -f ${fastqgzs[1]})"
 	v_fastqgz1_unzip="${v_workdir}/$(basename $v_fastqgz1 .gz).unzipped"
 	v_fastqgz2_unzip="${v_workdir}/$(basename $v_fastqgz2 .gz).unzipped"
 	v_trimmedS="${v_workdir}/${sampleId}.trimmed.s.fastq"
 	v_final1="${v_workdir}/${sampleId}_1.fastq"
 	v_final2="${v_workdir}/${sampleId}_2.fastq"
-	v_sampledir=${v_project_dir}/${catalog_type}/sample/${sampleId}
+	v_sampledir="${v_project_dir}/${catalog_type}/sample/${sampleId}"
 	v_downstream_dir="$v_project_dir/Downstream"
-	vars=$(compgen -A variable | grep "^v_.*")
+	vars="$(compgen -A variable | grep "^v_.*")"
 	for var in ${vars}; do echo "${var}=${!var}"; done
 	for var in ${vars}; do if [[ -z "${!var}" ]]; then echo "missing argument ${var}" ; return 1 ; fi ; done
 }
 function Init {
 	mkdir -p ${v_project_dir}/${catalog_type}/{sample,mapping,profiles}
-	mkdir -p $TMPDIR/reference
 	mkdir -p ${v_workdir}
+	mkdir -p ${v_refdir}
 }
 function Send {
-	cp $v_fastqgz1 ${v_workdir}
-	cp $v_fastqgz2 ${v_workdir}
-	cp -r ${reference_dir}/* $TMPDIR/reference
+	cp $v_fastqgz1 $v_workdir
+	cp $v_fastqgz2 $v_workdir
+	cp -r ${reference_dir}/* $v_refdir
+	cp -r $trimFasta $v_project_dir
 }
 function Decompress {
 	zcat ${v_workdir}/$(basename $v_fastqgz1) > $v_fastqgz1_unzip & pid1=$!
@@ -53,7 +58,7 @@ function Trim {
 	|| (echo "zip file not found" ; return 1 )
 	java -jar ${ALIEN_TRIMMER}/AlienTrimmer.jar \
 		-k 10 -l 45 -m 5 -p 40 -q 20 \
-		-if ${v_fastqgz1_unzip} -ir ${v_fastqgz2_unzip} -c ${trimFasta} \
+		-if ${v_fastqgz1_unzip} -ir ${v_fastqgz2_unzip} -c $TMPDIR/$(basename $trimFasta) \
 		-of ${v_final1} -or ${v_final2} -os ${v_trimmedS} \
 	|| return 1
 }
@@ -164,22 +169,26 @@ Downstream() {
 	Run GetMGS 
 }
 
+echo "...$(date): - begin running script"
+cat $0
+echo ""
+
 # Load modules
+echo "...$(date): - load modules"
 module load bioinfo-tools
 module load ruby/2.6.2
 module load AlienTrimmer/0.4.0
 module load bowtie2/2.3.4.1
+echo "...$(date): - done"; echo "" 
 
 # Load ini file
+echo "...$(date): - load ini file"
 sed -i "s|meteor.reference.dir=.*|meteor.reference.dir=$TMPDIR/reference|g" $1
 ini_file=$1
-
 source $ini_file > /dev/null 2>&1
 v_prefix=$( grep "meteor.counting.prefix.name" $ini_file | sed "s/^.*=//g" )
 cat $ini_file
-
-# Start
-mkdir -p $project_dir_rel
+echo "...$(date): - done"; echo "" 
 
 # Run meteor
 Main $sample $seq_data_dir/${sample}${forward_identifier} $seq_data_dir/${sample}${reverse_identifier}

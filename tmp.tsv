@@ -1,0 +1,84 @@
+jobid	cluster	jobstate	user	project	jobname	endtime	runtime	flag_list	booked	maxmem	core_list	node_list	file_list
+20134790	rackham	COMPLETED	saeeds	snic2021-5-248	'interactive.theo'	2021-05-24T18:46:13	00:00:18	.	1	0.0	.	r484	.
+20134866	rackham	CANCELLED	saeeds	snic2021-5-248	'METEOR_run_batch'	2021-05-25T11:40:04	16:43:46	!! Swap space was used	10	19.2	10	r406	/sw/share/slurm/rackham/extended_uppmax_jobstats/r406/20134866
+20134867	rackham	CANCELLED	saeeds	snic2021-5-248	'METEOR_run_batch'	2021-05-25T11:40:09	16:43:51	!! Swap space was used	10	19.3	10	r168	/sw/share/slurm/rackham/extended_uppmax_jobstats/r168/20134867
+20134868	rackham	CANCELLED	saeeds	snic2021-5-248	'METEOR_run_batch'	2021-05-25T11:40:17	16:43:59	!! Swap space was used	10	19.3	10	r184	/sw/share/slurm/rackham/extended_uppmax_jobstats/r184/20134868
+20134869	rackham	CANCELLED	saeeds	snic2021-5-248	'METEOR_run_batch'	2021-05-25T11:40:22	16:44:04	!! Swap space was used	10	19.2	10	r365	/sw/share/slurm/rackham/extended_uppmax_jobstats/r365/20134869
+20134872	rackham	CANCELLED	saeeds	snic2021-5-248	'METEOR_run_batch'	2021-05-25T11:40:28	16:44:10	!! Swap space was used	10	19.3	10	r43	/sw/share/slurm/rackham/extended_uppmax_jobstats/r43/20134872
+20134874	rackham	CANCELLED	saeeds	snic2021-5-248	'METEOR_run_batch'	2021-05-25T11:40:32	16:44:14	!! Swap space was used	10	19.3	10	r98	/sw/share/slurm/rackham/extended_uppmax_jobstats/r98/20134874
+20153743	rackham	FAILED	saeeds	snic2021-5-248	'METEOR_run_batch'	2021-05-25T16:54:23	00:00:12	.	10	0.0	.	r279	.
+20153797	rackham	FAILED	saeeds	snic2021-5-248	'METEOR_run_batch'	2021-05-26T02:24:38	09:24:59	.	10	19.2	10	r279	/sw/share/slurm/rackham/extended_uppmax_jobstats/r279/20153797
+20176917	rackham	COMPLETED	sunjae	snic2021-5-248	'interactive.sjlee'	2021-05-27T21:31:29	04:58:04	Just 12% of booked core and RAM resources were used,!! Less than half the booked cores and RAM were used,!! Less than one-quarter the booked cores and RAM were used,8 cores booked but 1 used,49.2 GB RAM available in booked cores but 0.2 used,6.2 GB RAM available in used cores but 0.2 used	8	0.2	8	r81	/sw/share/slurm/rackham/extended_uppmax_jobstats/r81/20176917
+20182115	rackham	COMPLETED	sunjae	snic2021-5-248	'interactive.sjlee'	2021-05-27T21:55:39	00:22:30	Just 75% of booked core and RAM resources were used,8 cores booked but 6 used,49.2 GB RAM available in booked cores but 0.6 used,36.9 GB RAM available in used cores but 0.6 used	8	0.6	8	r81	/sw/share/slurm/rackham/extended_uppmax_jobstats/r81/20182115
+20213818	rackham	FAILED	saeeds	snic2021-5-248	'METEOR_run_batch'	2021-05-30T02:43:11	16:17:13	.	10	19.3	10	r68	/sw/share/slurm/rackham/extended_uppmax_jobstats/r68/20213818
+20240240	rackham	COMPLETED	saeeds	snic2021-5-248	'interactive.theo'	2021-05-30T17:24:42	00:04:09	.	1	0.0	.	r483	.
+20240253	rackham	FAILED	saeeds	snic2021-5-248	'METEOR'	2021-05-30T17:44:25	00:00:12	.	10	0.0	.	r36	.
+20240258	rackham	COMPLETED	saeeds	snic2021-5-248	'METEOR'	2021-05-31T01:48:19	07:53:10	.	10	30.5	10	r36	/sw/share/slurm/rackham/extended_uppmax_jobstats/r36/20240258
+20251930	rackham	COMPLETED	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-01T07:09:37	20:17:39	.	10	30.5	10	r123	/sw/share/slurm/rackham/extended_uppmax_jobstats/r123/20251930
+20251931	rackham	TIMEOUT	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-01T10:52:19	1-00:00:21	.	10	30.6	10	r157	/sw/share/slurm/rackham/extended_uppmax_jobstats/r157/20251931
+20251932	rackham	TIMEOUT	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-01T10:52:19	1-00:00:21	.	10	23.6	10	r446	/sw/share/slurm/rackham/extended_uppmax_jobstats/r446/20251932
+20251933	rackham	TIMEOUT	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-01T10:52:19	1-00:00:21	.	10	30.7	10	r404	/sw/share/slurm/rackham/extended_uppmax_jobstats/r404/20251933
+20251934	rackham	TIMEOUT	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-01T10:52:19	1-00:00:21	.	10	30.6	10	r250	/sw/share/slurm/rackham/extended_uppmax_jobstats/r250/20251934
+20251935	rackham	TIMEOUT	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-01T10:52:19	1-00:00:21	.	10	31.0	10	r288	/sw/share/slurm/rackham/extended_uppmax_jobstats/r288/20251935
+20251936	rackham	TIMEOUT	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-01T10:52:19	1-00:00:21	.	10	32.9	10	r206	/sw/share/slurm/rackham/extended_uppmax_jobstats/r206/20251936
+20251937	rackham	TIMEOUT	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-01T10:52:19	1-00:00:21	.	10	30.6	10	r102	/sw/share/slurm/rackham/extended_uppmax_jobstats/r102/20251937
+20272165	rackham	TIMEOUT	saeeds	snic2021-5-248	'interactive.theo'	2021-06-01T23:22:28	01:00:27	.	1	0.0	1	r483	/sw/share/slurm/rackham/extended_uppmax_jobstats/r483/20272165
+20272377	rackham	COMPLETED	saeeds	snic2021-5-248	'interactive.theo'	2021-06-02T00:24:34	00:58:56	.	1	2.0	1	r483	/sw/share/slurm/rackham/extended_uppmax_jobstats/r483/20272377
+20273032	rackham	COMPLETED	saeeds	snic2021-5-248	'TEST1'	2021-06-02T05:22:20	04:44:44	!! Swap space was used	10	17.5	10	r119	/sw/share/slurm/rackham/extended_uppmax_jobstats/r119/20273032
+20272395	rackham	CANCELLED	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-02T13:33:35	13:56:23	.	10	30.2	10	r33	/sw/share/slurm/rackham/extended_uppmax_jobstats/r33/20272395
+20272401	rackham	CANCELLED	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-02T13:33:35	13:56:23	.	10	25.1	10	r232	/sw/share/slurm/rackham/extended_uppmax_jobstats/r232/20272401
+20272396	rackham	CANCELLED	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-02T13:33:35	13:56:23	.	10	30.6	10	r191	/sw/share/slurm/rackham/extended_uppmax_jobstats/r191/20272396
+20272398	rackham	CANCELLED	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-02T13:33:35	13:56:23	.	10	25.3	10	r212	/sw/share/slurm/rackham/extended_uppmax_jobstats/r212/20272398
+20272400	rackham	CANCELLED	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-02T13:33:35	13:56:23	.	10	30.5	10	r140	/sw/share/slurm/rackham/extended_uppmax_jobstats/r140/20272400
+20272399	rackham	CANCELLED	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-02T13:33:35	13:56:23	.	10	25.0	10	r212	/sw/share/slurm/rackham/extended_uppmax_jobstats/r212/20272399
+20272402	rackham	CANCELLED	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-02T13:33:35	13:56:23	.	10	25.1	10	r232	/sw/share/slurm/rackham/extended_uppmax_jobstats/r232/20272402
+20272397	rackham	CANCELLED	saeeds	snic2021-5-248	'Oral_FMT_B1'	2021-06-02T13:33:35	13:56:23	!! Swap space was used	10	29.4	10	r142	/sw/share/slurm/rackham/extended_uppmax_jobstats/r142/20272397
+20280635	rackham	CANCELLED	saeeds	snic2021-5-248	'TEST2'	2021-06-02T15:36:02	01:07:56	.	10	0.3	10	r220	/sw/share/slurm/rackham/extended_uppmax_jobstats/r220/20280635
+20280637	rackham	CANCELLED	saeeds	snic2021-5-248	'TEST2'	2021-06-02T15:36:02	01:07:56	Just 50% of booked core and RAM resources were used,10 cores booked but 5 used,61.6 GB RAM available in booked cores but 0.3 used,30.8 GB RAM available in used cores but 0.3 used	10	0.3	10	r270	/sw/share/slurm/rackham/extended_uppmax_jobstats/r270/20280637
+20280634	rackham	CANCELLED	saeeds	snic2021-5-248	'TEST2'	2021-06-02T15:36:02	01:13:26	Just 70% of booked core and RAM resources were used,10 cores booked but 7 used,61.6 GB RAM available in booked cores but 0.3 used,43.1 GB RAM available in used cores but 0.3 used	10	0.3	10	r125	/sw/share/slurm/rackham/extended_uppmax_jobstats/r125/20280634
+20280636	rackham	CANCELLED	saeeds	snic2021-5-248	'TEST2'	2021-06-02T15:36:02	01:07:56	Just 60% of booked core and RAM resources were used,10 cores booked but 6 used,61.6 GB RAM available in booked cores but 0.3 used,37 GB RAM available in used cores but 0.3 used	10	0.3	10	r412	/sw/share/slurm/rackham/extended_uppmax_jobstats/r412/20280636
+20280633	rackham	CANCELLED	saeeds	snic2021-5-248	'TEST2'	2021-06-02T15:36:02	01:18:56	.	10	17.0	10	r405	/sw/share/slurm/rackham/extended_uppmax_jobstats/r405/20280633
+20281203	rackham	TIMEOUT	saeeds	snic2021-5-248	'TEST2'	2021-06-02T23:50:46	08:00:10	.	10	17.8	10	r92	/sw/share/slurm/rackham/extended_uppmax_jobstats/r92/20281203
+20287435	rackham	TIMEOUT	saeeds	snic2021-5-248	'TEST2'	2021-06-03T01:29:38	08:00:02	.	10	17.7	10	r287	/sw/share/slurm/rackham/extended_uppmax_jobstats/r287/20287435
+20287436	rackham	TIMEOUT	saeeds	snic2021-5-248	'TEST2'	2021-06-03T01:29:38	08:00:02	.	10	17.4	10	r287	/sw/share/slurm/rackham/extended_uppmax_jobstats/r287/20287436
+20287437	rackham	TIMEOUT	saeeds	snic2021-5-248	'TEST2'	2021-06-03T01:29:38	08:00:02	.	10	16.9	10	r380	/sw/share/slurm/rackham/extended_uppmax_jobstats/r380/20287437
+20287438	rackham	TIMEOUT	saeeds	snic2021-5-248	'TEST2'	2021-06-03T01:29:38	08:00:02	.	10	17.5	10	r380	/sw/share/slurm/rackham/extended_uppmax_jobstats/r380/20287438
+20287439	rackham	TIMEOUT	saeeds	snic2021-5-248	'TEST2'	2021-06-03T01:35:08	08:00:02	.	10	17.8	10	r149	/sw/share/slurm/rackham/extended_uppmax_jobstats/r149/20287439
+20305290	rackham	COMPLETED	saeeds	snic2021-5-248	'TEST2'	2021-06-04T02:03:41	11:01:35	.	10	17.7	10	r80	/sw/share/slurm/rackham/extended_uppmax_jobstats/r80/20305290
+20305292	rackham	COMPLETED	saeeds	snic2021-5-248	'TEST2'	2021-06-04T12:35:15	21:27:39	.	10	17.8	10	r194	/sw/share/slurm/rackham/extended_uppmax_jobstats/r194/20305292
+20305293	rackham	COMPLETED	saeeds	snic2021-5-248	'TEST2'	2021-06-04T14:14:10	23:01:04	!! Swap space was used	10	17.8	10	r305	/sw/share/slurm/rackham/extended_uppmax_jobstats/r305/20305293
+20305294	rackham	COMPLETED	saeeds	snic2021-5-248	'TEST2'	2021-06-04T14:25:08	23:12:02	.	10	17.8	10	r305	/sw/share/slurm/rackham/extended_uppmax_jobstats/r305/20305294
+20305291	rackham	TIMEOUT	saeeds	snic2021-5-248	'TEST2'	2021-06-04T15:07:40	1-00:00:04	.	10	17.9	.	r66	.
+20329988	rackham	CANCELLED	saeeds	snic2021-5-248	'TEST3'	.	00:00:00	not_run	0	.	.	.
+20349677	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T12:52:40	13:34:59	.	10	17.8	10	r290	/sw/share/slurm/rackham/extended_uppmax_jobstats/r290/20349677
+20349687	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T13:33:55	14:16:04	!! Swap space was used	10	17.7	10	r473	/sw/share/slurm/rackham/extended_uppmax_jobstats/r473/20349687
+20349693	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T14:09:14	14:49:20	!! Swap space was used	10	17.7	10	r107	/sw/share/slurm/rackham/extended_uppmax_jobstats/r107/20349693
+20349675	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T15:06:22	15:48:41	!! Swap space was used	10	17.8	10	r269	/sw/share/slurm/rackham/extended_uppmax_jobstats/r269/20349675
+20349689	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T15:55:37	16:35:43	.	10	17.8	10	r189	/sw/share/slurm/rackham/extended_uppmax_jobstats/r189/20349689
+20349680	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T16:15:46	16:57:55	.	10	17.8	.	r386	.
+20349668	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T17:28:08	18:10:38	!! Swap space was used	10	17.8	10	r84	/sw/share/slurm/rackham/extended_uppmax_jobstats/r84/20349668
+20349690	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T18:54:57	19:35:03	.	10	17.8	10	r189	/sw/share/slurm/rackham/extended_uppmax_jobstats/r189/20349690
+20349678	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T19:34:21	20:16:40	.	10	17.8	10	r297	/sw/share/slurm/rackham/extended_uppmax_jobstats/r297/20349678
+20349691	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T19:56:49	20:36:55	!! Swap space was used	10	17.8	10	r106	/sw/share/slurm/rackham/extended_uppmax_jobstats/r106/20349691
+20349682	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T20:02:54	20:45:03	.	10	17.8	10	r401	/sw/share/slurm/rackham/extended_uppmax_jobstats/r401/20349682
+20349670	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T20:35:16	21:17:35	.	10	17.9	10	r97	/sw/share/slurm/rackham/extended_uppmax_jobstats/r97/20349670
+20349681	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T20:45:22	21:27:31	.	10	17.8	.	r386	.
+20349688	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T21:31:05	22:12:48	!! Swap space was used	10	17.8	10	r254	/sw/share/slurm/rackham/extended_uppmax_jobstats/r254/20349688
+20349686	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T22:14:41	22:56:50	!! Swap space was used	10	17.9	10	r473	/sw/share/slurm/rackham/extended_uppmax_jobstats/r473/20349686
+20349695	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-06T23:04:02	23:43:53	!! Swap space was used	10	17.9	10	r155	/sw/share/slurm/rackham/extended_uppmax_jobstats/r155/20349695
+20330206	rackham	COMPLETED	saeeds	snic2021-5-248	'TEST3more'	2021-06-07T00:31:20	1-10:44:14	.	15	17.9	15	r149	/sw/share/slurm/rackham/extended_uppmax_jobstats/r149/20330206
+20349694	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T00:44:26	1-01:24:32	.	10	17.9	10	r107	/sw/share/slurm/rackham/extended_uppmax_jobstats/r107/20349694
+20329990	rackham	COMPLETED	saeeds	snic2021-5-248	'TEST3'	2021-06-07T01:45:53	1-12:37:17	.	10	17.8	10	r59	/sw/share/slurm/rackham/extended_uppmax_jobstats/r59/20329990
+20349674	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T01:58:56	1-02:41:15	.	10	17.8	10	r269	/sw/share/slurm/rackham/extended_uppmax_jobstats/r269/20349674
+20349672	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T03:25:28	1-04:07:47	.	10	17.9	10	r156	/sw/share/slurm/rackham/extended_uppmax_jobstats/r156/20349672
+20349679	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T03:48:36	1-04:30:45	.	10	17.9	10	r297	/sw/share/slurm/rackham/extended_uppmax_jobstats/r297/20349679
+20349671	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T03:57:08	1-04:39:27	!! Swap space was used	10	17.9	10	r97	/sw/share/slurm/rackham/extended_uppmax_jobstats/r97/20349671
+20349676	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T04:00:59	1-04:43:18	!! Swap space was used	10	17.9	10	r290	/sw/share/slurm/rackham/extended_uppmax_jobstats/r290/20349676
+20349667	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T04:15:55	1-04:58:25	.	10	17.9	10	r390	/sw/share/slurm/rackham/extended_uppmax_jobstats/r390/20349667
+20349673	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T04:33:19	1-05:15:38	.	10	17.9	10	r156	/sw/share/slurm/rackham/extended_uppmax_jobstats/r156/20349673
+20349692	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T06:32:34	1-07:12:40	.	10	17.9	10	r106	/sw/share/slurm/rackham/extended_uppmax_jobstats/r106/20349692
+20349683	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T08:29:59	1-09:12:08	!! Swap space was used	10	17.9	10	r401	/sw/share/slurm/rackham/extended_uppmax_jobstats/r401/20349683
+20349669	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T13:35:54	1-14:18:13	.	10	17.9	10	r84	/sw/share/slurm/rackham/extended_uppmax_jobstats/r84/20349669
+20349685	rackham	COMPLETED	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T19:27:58	1-20:10:07	!! Swap space was used	10	17.9	10	r403	/sw/share/slurm/rackham/extended_uppmax_jobstats/r403/20349685
+20349684	rackham	TIMEOUT	saeeds	snic2021-5-248	'anotherbatch'	2021-06-07T23:17:51	2-00:00:00	.	10	18.0	10	r403	/sw/share/slurm/rackham/extended_uppmax_jobstats/r403/20349684
+20383268	rackham	COMPLETED	saeeds	snic2021-5-248	'test_with_quotes'	2021-06-09T04:30:44	09:09:50	.	10	17.5	10	r80	/sw/share/slurm/rackham/extended_uppmax_jobstats/r80/20383268

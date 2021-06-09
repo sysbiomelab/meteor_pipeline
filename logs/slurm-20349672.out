@@ -1,0 +1,507 @@
+...Sat Jun  5 23:17:41 CEST 2021: - begin running script
+#!/bin/bash -l
+#SBATCH --account=snic2021-5-248
+#SBATCH --partition=core
+#SBATCH --ntasks=10
+#SBATCH --time=2-00:00:00
+#SBATCH --job-name=anotherbatch
+#SBATCH --mail-user=zn.tportlock@gmail.com
+#SBATCH --mail-type=ALL
+##SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/newscripts/meteor/logs/%j 
+
+set -a
+
+function Run {
+	echo "...$(date): $1 - begin"
+	$@ \
+	&& (echo "...$(date): $1 - done"; echo "") \
+	|| (echo "...$(date): $1 - failed"; echo ""; exit 1)
+}
+function Parse_variables {
+	v_project_dir=$TMPDIR/$sampleId
+	v_workdir="${v_project_dir}/working/$sampleId"
+	v_fastqgz1=$(readlink -f ${fastqgzs[0]})
+	v_fastqgz2=$(readlink -f ${fastqgzs[1]})
+	v_fastqgz1_unzip="${v_workdir}/$(basename $v_fastqgz1 .gz).unzipped"
+	v_fastqgz2_unzip="${v_workdir}/$(basename $v_fastqgz2 .gz).unzipped"
+	v_trimmedS="${v_workdir}/${sampleId}.trimmed.s.fastq"
+	v_final1="${v_workdir}/${sampleId}_1.fastq"
+	v_final2="${v_workdir}/${sampleId}_2.fastq"
+	v_sampledir=${v_project_dir}/${catalog_type}/sample/${sampleId}
+	v_downstream_dir="$v_project_dir/Downstream"
+	vars=$(compgen -A variable | grep "^v_.*")
+	for var in ${vars}; do echo "${var}=${!var}"; done
+	for var in ${vars}; do if [[ -z "${!var}" ]]; then echo "missing argument ${var}" ; return 1 ; fi ; done
+}
+function Init {
+	mkdir -p ${v_project_dir}/${catalog_type}/{sample,mapping,profiles}
+	mkdir -p $TMPDIR/reference
+	mkdir -p ${v_workdir}
+}
+function Send {
+	cp $v_fastqgz1 ${v_workdir}
+	cp $v_fastqgz2 ${v_workdir}
+	cp -r ${reference_dir}/* $TMPDIR/reference
+	cp -r ${trimFasta} $TMPDIR
+}
+function Decompress {
+	zcat ${v_workdir}/$(basename $v_fastqgz1) > $v_fastqgz1_unzip & pid1=$!
+	zcat ${v_workdir}/$(basename $v_fastqgz2) > $v_fastqgz2_unzip & pid2=$!
+	trap "kill -2 $pid1 $pid2" SIGINT
+	wait
+}
+function Trim {
+	[[ -f $v_fastqgz1_unzip && -f $v_fastqgz2_unzip ]] \
+	|| (echo "zip file not found" ; return 1 )
+	java -jar ${ALIEN_TRIMMER}/AlienTrimmer.jar \
+		-k 10 -l 45 -m 5 -p 40 -q 20 \
+		-if ${v_fastqgz1_unzip} -ir ${v_fastqgz2_unzip} -c $TMPDIR/$(basename $trimFasta) \
+		-of ${v_final1} -or ${v_final2} -os ${v_trimmedS} \
+	|| return 1
+}
+function Import {
+	[[ -f $v_final1 && -f $v_final2 ]] \
+	|| (echo "trimmed files not found" ; return 1 )
+	mv ${v_final1} ${v_final2} ${v_project_dir}/${catalog_type}/sample &&
+	rm -r ${v_workdir}
+	ruby ${meteorImportScript} \
+		-i ${v_project_dir}/${catalog_type}/sample \
+		-p ${catalog_type} \
+		-t ${seq_platform} \
+		-m "${sampleId}*" \
+	|| return 1
+}
+function Map_reads {
+	ruby ${meteor}/meteor.rb \
+		-w ${ini_file} \
+		-i ${v_sampledir} \
+		-p ${v_project_dir}/${catalog_type} \
+		-o mapping \
+	|| return 1
+}
+function Quantify {
+	${meteor}/meteor-profiler \
+		-p ${v_project_dir}/${catalog_type} \
+		-f ${v_project_dir}/${catalog_type}/profiles \
+		-t smart_shared_reads \
+		-w ${ini_file} \
+		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_${v_prefix}_gene_profile/census.dat \
+	&& rm -r ${v_project_dir}/${catalog_type}/mapping/${sampleId} \
+	|| return 1
+}
+function Recover {
+	rsync -aurvP --remove-source-files $v_project_dir/ $project_dir_rel
+}
+function PrepareReports {
+	inFile=$v_downstream_dir/$1.csv
+	outFile=$v_downstream_dir/$1.final.csv
+	cat $v_project_dir/$catalog_type/profiles/*$1.csv > $inFile
+	head -1 $inFile > ${outFile}.header
+	cat $inFile | grep -v sample > ${outFile}.body
+	cat ${outFile}.header ${outFile}.body > ${outFile}
+	rm ${inFile} ${outFile}.header ${outFile}.body
+}
+function PrepareGCT {
+	inFile=$v_downstream_dir/merged.tsv
+	outFile=$v_downstream_dir/merged.final.tsv
+	paste $v_project_dir/$catalog_type/profiles/*.tsv > $inFile
+	width=$(head -1 $inFile | awk '{print NF}')
+	echo $width
+	cat $inFile | cut -f1 | sed 's/\#id_fragment/gene_id/g' > ${outFile}.gene
+	cat $inFile | awk -v width="$width" 'BEGIN{OFS="\t"}{s="";for(i=2;i<=width;i=i+2){if (i!=width)s=s $i "\t"; if (i==width) s=s $i}; print s}' > ${outFile}.expr
+	paste ${outFile}.gene ${outFile}.expr > ${outFile}
+	rm ${inFile} ${outFile}.gene ${outFile}.expr
+}
+function SaveGCT {
+	#cd $v_downstream_dir
+	Rscript $Rdir/save.gct.r  \
+		$v_downstream_dir/merged.final.tsv \
+		merged.final \
+		$v_downstream_dir \
+	|| return 1
+}
+function Normalize {
+	#cd $v_downstream_dir
+	Rscript $Rdir/get.norm.downsize.r \
+		$v_downstream_dir/merged.final.RData \
+		merged.final \
+		$v_downstream_dir \
+		$v_downstream_dir \
+	|| return 1
+}
+function GetMGS {
+	Rscript $Rdir/get.oral.mgs.from.norm.r \
+		$v_downstream_dir/merged.final.norm.10M.RData \
+		merged.final \
+		$v_downstream_dir \
+		$v_downstream_dir \
+	|| return 1
+}
+
+Main() {
+	sampleId=$(basename $1 .fastq.gz)
+	fastqgzs+=("$2")
+	fastqgzs+=("$3")
+
+	Run Parse_variables &&
+	Run Init &&
+	Run Send &&
+	Run Decompress &&
+	Run Trim &&
+	Run Import &&
+	Run Map_reads &&
+	Run Quantify &&
+	Run Recover
+}
+Downstream() {
+	v_project_dir=$(readlink -f $project_dir_rel)
+	v_downstream_dir="$v_project_dir/Downstream"
+	mkdir -p $v_downstream_dir
+
+	Run PrepareReports counting_report &&
+	Run PrepareReports extended_counting_report &&
+	Run PrepareGCT &&
+	Run SaveGCT &&
+	Run Normalize &&
+	Run GetMGS 
+}
+
+echo "...$(date): - begin running script"
+cat $0
+echo ""
+
+# Load modules
+echo "...$(date): - load modules"
+module load bioinfo-tools
+module load ruby/2.6.2
+module load AlienTrimmer/0.4.0
+module load bowtie2/2.3.4.1
+echo "...$(date): - done; echo ''"
+
+# Load ini file
+echo "...$(date): - load ini file"
+sed -i "s|meteor.reference.dir=.*|meteor.reference.dir=$TMPDIR/reference|g" $1
+ini_file=$1
+source $ini_file > /dev/null 2>&1
+v_prefix=$( grep "meteor.counting.prefix.name" $ini_file | sed "s/^.*=//g" )
+cat $ini_file
+echo "...$(date): - done; echo ''"
+
+# Run meteor
+Main $sample $seq_data_dir/${sample}${forward_identifier} $seq_data_dir/${sample}${reverse_identifier}
+
+# Run the downstream analysis
+#Downstream
+
+...Sat Jun  5 23:17:41 CEST 2021: - load modules
+Bowtie2 looks for the specified index first in the current directory, then in the directory specified in the BOWTIE2_INDEXES environment variable.
+The pregenerated indexes for the reference genonomes are placed under /sw/data/reference/*/*/program_files/bowtie2 for each reference genome
+...Sat Jun  5 23:17:49 CEST 2021: - done; echo ''
+...Sat Jun  5 23:17:49 CEST 2021: - load ini file
+[Pipeline]
+sample=P18161_216/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_216_S89_L004
+forward_identifier="_R1_001.fastq.gz"
+reverse_identifier="_R2_001.fastq.gz"
+seq_data_dir="/proj/snic2020-6-153/delivery04021/P18161"
+project_dir_rel="/proj/uppstore2019028/projects/metagenome/theo/newscripts/tmp"
+catalog_type="oral_catalog"
+seq_platform="illumina"
+trimFasta="/proj/uppstore2019028/projects/metagenome/alienTrimmerPF8contaminants.fasta"
+meteorImportScript="/proj/uppstore2019028/meteor.2019.11.04/MeteorImportFastq.rb"
+meteor="/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04"
+Rdir="/proj/uppstore2019028/projects/metagenome/meteor_downstream_rscripts"
+reference_dir="/proj/uppstore2019028/projects/metagenome/meteor_ref"
+[worksession]
+meteor.reference.dir=/scratch/20349672/reference
+meteor.db.type=binary
+meteor.nb.attempts=3
+meteor.read.cleaning.program=none
+meteor.read.cleaning.cmd=
+meteor.mapping.program=bowtie2
+meteor.mapping.file.format=sam
+meteor.is.cpu.percentage=0
+meteor.cpu.count=10
+meteor.checksum=md5
+meteor.excluded.reference.count=3
+[main_reference]
+meteor.reference.name=oral_catalog
+meteor.matches=10000
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapper.cmd=
+meteor.mapping.prefix.name=mapping_vs_oral_catalog
+meteor.counting.prefix.name=vs_hs_10_4_oral_catalog
+[excluded_reference_1]
+meteor.reference.name=Homo_sapiens_GRCh38
+meteor.matches=1
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapping.prefix.name=mapping_vs_Homo_sapiens_GRCh38
+[excluded_reference_2]
+meteor.reference.name=A_thaliana_TAIR10
+meteor.matches=1
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapping.prefix.name=mapping_vs_A_thaliana_TAIR10
+[excluded_reference_3]
+meteor.reference.name=Bos_taurus_UMD3
+meteor.matches=1
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapping.prefix.name=mapping_vs_Bos_taurus_UMD3
+...Sat Jun  5 23:18:04 CEST 2021: - done; echo ''
+...Sat Jun  5 23:18:04 CEST 2021: Parse_variables - begin
+v_downstream_dir=/scratch/20349672/P18161_216_S89_L004/Downstream
+v_fastqgz1=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_216/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_216_S89_L004_R1_001.fastq.gz
+v_fastqgz1_unzip=/scratch/20349672/P18161_216_S89_L004/working/P18161_216_S89_L004/P18161_216_S89_L004_R1_001.fastq.unzipped
+v_fastqgz2=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_216/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_216_S89_L004_R2_001.fastq.gz
+v_fastqgz2_unzip=/scratch/20349672/P18161_216_S89_L004/working/P18161_216_S89_L004/P18161_216_S89_L004_R2_001.fastq.unzipped
+v_final1=/scratch/20349672/P18161_216_S89_L004/working/P18161_216_S89_L004/P18161_216_S89_L004_1.fastq
+v_final2=/scratch/20349672/P18161_216_S89_L004/working/P18161_216_S89_L004/P18161_216_S89_L004_2.fastq
+v_prefix=vs_hs_10_4_oral_catalog
+v_project_dir=/scratch/20349672/P18161_216_S89_L004
+v_sampledir=/scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004
+v_trimmedS=/scratch/20349672/P18161_216_S89_L004/working/P18161_216_S89_L004/P18161_216_S89_L004.trimmed.s.fastq
+v_workdir=/scratch/20349672/P18161_216_S89_L004/working/P18161_216_S89_L004
+...Sat Jun  5 23:18:05 CEST 2021: Parse_variables - done
+
+...Sat Jun  5 23:18:05 CEST 2021: Init - begin
+...Sat Jun  5 23:18:05 CEST 2021: Init - done
+
+...Sat Jun  5 23:18:05 CEST 2021: Send - begin
+...Sun Jun  6 00:35:19 CEST 2021: Send - done
+
+...Sun Jun  6 00:35:19 CEST 2021: Decompress - begin
+...Sun Jun  6 00:44:13 CEST 2021: Decompress - done
+
+...Sun Jun  6 00:44:13 CEST 2021: Trim - begin
+AlienTrimmer main options: -k 10 -l 45 -m 5 -q 20 -p 40 (Phred+33)  /  439 fwd alien sequence(s)  /  7856 fwd k-mers (k=10)  /  439 rev alien sequence(s)  /  7856 rev k-mers (k=10)
+[01:55]   1,000,000 read pairs processed:     690,178 trimmed (fwd:     331,420  rev:     358,758)      15,303 removed (fwd:       5,975  rev:       9,328)
+[03:51]   2,000,000 read pairs processed:   1,382,387 trimmed (fwd:     657,064  rev:     725,323)      30,007 removed (fwd:      11,295  rev:      18,712)
+[05:47]   3,000,000 read pairs processed:   2,071,144 trimmed (fwd:     982,069  rev:   1,089,075)      45,122 removed (fwd:      16,637  rev:      28,485)
+[07:43]   4,000,000 read pairs processed:   2,751,123 trimmed (fwd:   1,305,383  rev:   1,445,740)      59,398 removed (fwd:      22,101  rev:      37,297)
+[09:39]   5,000,000 read pairs processed:   3,434,858 trimmed (fwd:   1,625,517  rev:   1,809,341)      73,809 removed (fwd:      27,184  rev:      46,625)
+[11:37]   6,000,000 read pairs processed:   4,123,906 trimmed (fwd:   1,951,674  rev:   2,172,232)      88,250 removed (fwd:      32,497  rev:      55,753)
+[13:34]   7,000,000 read pairs processed:   4,800,665 trimmed (fwd:   2,271,093  rev:   2,529,572)     102,115 removed (fwd:      37,617  rev:      64,498)
+[15:30]   8,000,000 read pairs processed:   5,489,743 trimmed (fwd:   2,591,993  rev:   2,897,750)     116,623 removed (fwd:      42,441  rev:      74,182)
+[17:26]   9,000,000 read pairs processed:   6,156,955 trimmed (fwd:   2,909,591  rev:   3,247,364)     130,481 removed (fwd:      47,641  rev:      82,840)
+[19:22]  10,000,000 read pairs processed:   6,828,682 trimmed (fwd:   3,225,117  rev:   3,603,565)     144,252 removed (fwd:      52,628  rev:      91,624)
+[21:18]  11,000,000 read pairs processed:   7,515,351 trimmed (fwd:   3,547,750  rev:   3,967,601)     158,261 removed (fwd:      57,629  rev:     100,632)
+[23:13]  12,000,000 read pairs processed:   8,190,264 trimmed (fwd:   3,865,237  rev:   4,325,027)     171,993 removed (fwd:      62,658  rev:     109,335)
+[25:10]  13,000,000 read pairs processed:   8,867,944 trimmed (fwd:   4,181,220  rev:   4,686,724)     185,587 removed (fwd:      67,607  rev:     117,980)
+[27:06]  14,000,000 read pairs processed:   9,545,489 trimmed (fwd:   4,505,382  rev:   5,040,107)     200,085 removed (fwd:      73,242  rev:     126,843)
+[29:02]  15,000,000 read pairs processed:  10,215,006 trimmed (fwd:   4,825,146  rev:   5,389,860)     214,312 removed (fwd:      78,695  rev:     135,617)
+[31:00]  16,000,000 read pairs processed:  10,908,408 trimmed (fwd:   5,152,070  rev:   5,756,338)     228,349 removed (fwd:      83,673  rev:     144,676)
+[32:56]  17,000,000 read pairs processed:  11,735,554 trimmed (fwd:   5,541,457  rev:   6,194,097)     246,278 removed (fwd:      89,398  rev:     156,880)
+[34:54]  18,000,000 read pairs processed:  12,471,408 trimmed (fwd:   5,889,627  rev:   6,581,781)     261,624 removed (fwd:      95,302  rev:     166,322)
+[36:54]  19,000,000 read pairs processed:  13,247,423 trimmed (fwd:   6,253,463  rev:   6,993,960)     276,706 removed (fwd:     100,859  rev:     175,847)
+[38:51]  20,000,000 read pairs processed:  14,001,347 trimmed (fwd:   6,604,863  rev:   7,396,484)     291,781 removed (fwd:     106,643  rev:     185,138)
+[40:47]  21,000,000 read pairs processed:  14,737,308 trimmed (fwd:   6,948,498  rev:   7,788,810)     306,149 removed (fwd:     111,945  rev:     194,204)
+[42:43]  22,000,000 read pairs processed:  15,481,854 trimmed (fwd:   7,300,117  rev:   8,181,737)     321,019 removed (fwd:     117,619  rev:     203,400)
+[44:39]  23,000,000 read pairs processed:  16,205,670 trimmed (fwd:   7,639,078  rev:   8,566,592)     335,566 removed (fwd:     123,187  rev:     212,379)
+[46:36]  24,000,000 read pairs processed:  16,931,367 trimmed (fwd:   7,979,759  rev:   8,951,608)     350,005 removed (fwd:     128,746  rev:     221,259)
+[48:31]  25,000,000 read pairs processed:  17,652,545 trimmed (fwd:   8,317,815  rev:   9,334,730)     364,496 removed (fwd:     134,367  rev:     230,129)
+[50:26]  26,000,000 read pairs processed:  18,371,724 trimmed (fwd:   8,652,760  rev:   9,718,964)     378,480 removed (fwd:     139,716  rev:     238,764)
+[52:22]  27,000,000 read pairs processed:  19,098,793 trimmed (fwd:   8,997,769  rev:  10,101,024)     392,941 removed (fwd:     145,461  rev:     247,480)
+[54:23]  28,000,000 read pairs processed:  19,819,509 trimmed (fwd:   9,336,556  rev:  10,482,953)     407,244 removed (fwd:     150,966  rev:     256,278)
+[57:27]  29,000,000 read pairs processed:  20,576,655 trimmed (fwd:   9,693,644  rev:  10,883,011)     422,334 removed (fwd:     156,694  rev:     265,640)
+[59:32]  30,000,000 read pairs processed:  21,317,015 trimmed (fwd:  10,043,556  rev:  11,273,459)     437,348 removed (fwd:     162,639  rev:     274,709)
+[61:29]  30,842,727 read pairs processed:  21,922,723 trimmed (fwd:  10,326,334  rev:  11,596,389)     449,001 removed (fwd:     166,975  rev:     282,026)
+...Sun Jun  6 01:45:54 CEST 2021: Trim - done
+
+...Sun Jun  6 01:45:54 CEST 2021: Import - begin
+ruby: warning: shebang line ending with \r may cause problems
+Import /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004_2.fastq
+Import /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004_1.fastq
+Importation done!
+...Sun Jun  6 01:45:59 CEST 2021: Import - done
+
+...Sun Jun  6 01:45:59 CEST 2021: Map_reads - begin
+/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:146: warning: constant ::Fixnum is deprecated
+/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:161: warning: Insecure world writable dir /proj/uppstore2019028/Helen/meteor-linux.2019-11-04 in PATH, mode 042777
+
+Launch mapping
+
+
+######### Meteor Mapping task description
+Sample name = P18161_216_S89_L004
+Library name = P18161_216_S89_L004_1
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = P18161_216_S89_L004.ini
+
+######### Task main mapping 0
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20349672/reference/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_1.fastq.idx -S /scratch/20349672/P18161_216_S89_L004/oral_catalog/mapping/P18161_216_S89_L004/mapping_vs_oral_catalog_P18161_216_S89_L004_1/P18161_216_S89_L004_1_1.sam
+30438309 reads; of these:
+  30438309 (100.00%) were unpaired; of these:
+    24477205 (80.42%) aligned 0 times
+    1543549 (5.07%) aligned exactly 1 time
+    4417555 (14.51%) aligned >1 times
+19.58% overall alignment rate
+
+######### TaskExcludedMapping(0, 1) ; reference name: Homo_sapiens_GRCh38
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20349672/reference/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_1.fastq.idx -S /scratch/20349672/P18161_216_S89_L004/oral_catalog/mapping/P18161_216_S89_L004/mapping_vs_Homo_sapiens_GRCh38_P18161_216_S89_L004_1/P18161_216_S89_L004_1_1.sam
+30438309 reads; of these:
+  30438309 (100.00%) were unpaired; of these:
+    4509361 (14.81%) aligned 0 times
+    25928948 (85.19%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+85.19% overall alignment rate
+
+######### TaskExcludedMapping(0, 2) ; reference name: A_thaliana_TAIR10
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20349672/reference/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_1.fastq.idx -S /scratch/20349672/P18161_216_S89_L004/oral_catalog/mapping/P18161_216_S89_L004/mapping_vs_A_thaliana_TAIR10_P18161_216_S89_L004_1/P18161_216_S89_L004_1_1.sam
+30438309 reads; of these:
+  30438309 (100.00%) were unpaired; of these:
+    30434074 (99.99%) aligned 0 times
+    4235 (0.01%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.01% overall alignment rate
+
+######### TaskExcludedMapping(0, 3) ; reference name: Bos_taurus_UMD3
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20349672/reference/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_1.fastq.idx -S /scratch/20349672/P18161_216_S89_L004/oral_catalog/mapping/P18161_216_S89_L004/mapping_vs_Bos_taurus_UMD3_P18161_216_S89_L004_1/P18161_216_S89_L004_1_1.sam
+30438309 reads; of these:
+  30438309 (100.00%) were unpaired; of these:
+    29947087 (98.39%) aligned 0 times
+    491222 (1.61%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+1.61% overall alignment rate
+removing re-indexed file:
+/scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_1.fastq.idx
+
+
+######### Meteor Mapping task description
+Sample name = P18161_216_S89_L004
+Library name = P18161_216_S89_L004_2
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = P18161_216_S89_L004.ini
+
+######### Task main mapping 1
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20349672/reference/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_2.fastq.idx -S /scratch/20349672/P18161_216_S89_L004/oral_catalog/mapping/P18161_216_S89_L004/mapping_vs_oral_catalog_P18161_216_S89_L004_2/P18161_216_S89_L004_2_1.sam
+30438309 reads; of these:
+  30438309 (100.00%) were unpaired; of these:
+    24497762 (80.48%) aligned 0 times
+    1544126 (5.07%) aligned exactly 1 time
+    4396421 (14.44%) aligned >1 times
+19.52% overall alignment rate
+
+######### TaskExcludedMapping(1, 1) ; reference name: Homo_sapiens_GRCh38
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20349672/reference/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_2.fastq.idx -S /scratch/20349672/P18161_216_S89_L004/oral_catalog/mapping/P18161_216_S89_L004/mapping_vs_Homo_sapiens_GRCh38_P18161_216_S89_L004_2/P18161_216_S89_L004_2_1.sam
+30438309 reads; of these:
+  30438309 (100.00%) were unpaired; of these:
+    4615643 (15.16%) aligned 0 times
+    25822666 (84.84%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+84.84% overall alignment rate
+
+######### TaskExcludedMapping(1, 2) ; reference name: A_thaliana_TAIR10
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20349672/reference/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_2.fastq.idx -S /scratch/20349672/P18161_216_S89_L004/oral_catalog/mapping/P18161_216_S89_L004/mapping_vs_A_thaliana_TAIR10_P18161_216_S89_L004_2/P18161_216_S89_L004_2_1.sam
+30438309 reads; of these:
+  30438309 (100.00%) were unpaired; of these:
+    30434009 (99.99%) aligned 0 times
+    4300 (0.01%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.01% overall alignment rate
+
+######### TaskExcludedMapping(1, 3) ; reference name: Bos_taurus_UMD3
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20349672/reference/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_2.fastq.idx -S /scratch/20349672/P18161_216_S89_L004/oral_catalog/mapping/P18161_216_S89_L004/mapping_vs_Bos_taurus_UMD3_P18161_216_S89_L004_2/P18161_216_S89_L004_2_1.sam
+30438309 reads; of these:
+  30438309 (100.00%) were unpaired; of these:
+    29950961 (98.40%) aligned 0 times
+    487348 (1.60%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+1.60% overall alignment rate
+removing re-indexed file:
+/scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004/8d9fb638598743d18a7452da1cbe1c3a/P18161_216_S89_L004_2.fastq.idx
+
+Launch counting
+
+Executing counting command:
+meteor-counter -w inifiles/P18161_216_S89_L004.ini -i /scratch/20349672/P18161_216_S89_L004/oral_catalog/sample/P18161_216_S89_L004 -p /scratch/20349672/P18161_216_S89_L004/oral_catalog -o mapping
+######### workspace preparation
+######### Meteor task description
+Sample name = P18161_216_S89_L004
+Library name = P18161_216_S89_L004_1
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = P18161_216_S89_L004.ini
+######### Meteor task description
+Sample name = P18161_216_S89_L004
+Library name = P18161_216_S89_L004_2
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = P18161_216_S89_L004.ini
+######### Task main counting
+
+Job finished !
+Done !
+Job finished without errors ...
+...Mon Jun  7 02:43:12 CEST 2021: Map_reads - done
+
+...Mon Jun  7 02:43:18 CEST 2021: Quantify - begin
+SampleCount: 1
+RunSampleCount: 2
+
+######### profiling job started
+
+1000000 processed records.
+2000000 processed records.
+3000000 processed records.
+4000000 processed records.
+5000000 processed records.
+6000000 processed records.
+7000000 processed records.
+8000000 processed records.
+8403558 processed records.
+
+Merged profiled data are saved here: /scratch/20349672/P18161_216_S89_L004/oral_catalog/profiles/P18161_216_S89_L004.tsv
+
+Counting report is saved here: /scratch/20349672/P18161_216_S89_L004/oral_catalog/profiles/P18161_216_S89_L004_counting_report.csv
+
+Extended counting report is saved here: /scratch/20349672/P18161_216_S89_L004/oral_catalog/profiles/P18161_216_S89_L004_extended_counting_report.csv
+
+######### Job finished
+...Mon Jun  7 02:47:48 CEST 2021: Quantify - done
+
+...Mon Jun  7 02:47:48 CEST 2021: Recover - begin
+sending incremental file list
+./
+oral_catalog/
+oral_catalog/mapping/
+oral_catalog/profiles/
+oral_catalog/profiles/P18161_216_S89_L004.tsv
+         32,768   0%    0.00kB/s    0:00:00       84,830,590 100%  224.02MB/s    0:00:00 (xfr#1, to-chk=8/15)
+oral_catalog/profiles/P18161_216_S89_L004_counting_report.csv
+            501 100%    1.35kB/s    0:00:00              501 100%    1.35kB/s    0:00:00 (xfr#2, to-chk=7/15)
+oral_catalog/profiles/P18161_216_S89_L004_extended_counting_report.csv
+            754 100%    2.03kB/s    0:00:00              754 100%    2.03kB/s    0:00:00 (xfr#3, to-chk=6/15)
+oral_catalog/profiles/P18161_216_S89_L004_gene_profile.ini
+          3,095 100%    8.35kB/s    0:00:00            3,095 100%    8.35kB/s    0:00:00 (xfr#4, to-chk=5/15)
+oral_catalog/sample/
+oral_catalog/sample/P18161_216_S89_L004/
+oral_catalog/sample/P18161_216_S89_L004/P18161_216_S89_L004_1.fastq
+         32,768   0%   47.69kB/s   62:51:04          819,200   0%  245.47kB/s   12:12:34        1,343,488   0%  226.75kB/s   13:13:01        1,867,776   0%  265.39kB/s   11:17:32        2,392,064   0%  287.83kB/s   10:24:41        2,654,208   0%  245.72kB/s   12:11:44        3,178,496   0%  155.34kB/s   19:17:23        4,227,072   0%  163.37kB/s   18:20:24        5,013,504   0%  150.76kB/s   19:52:22        6,062,080   0%  189.62kB/s   15:47:54        6,324,224   0%  258.50kB/s   11:35:18        7,110,656   0%  260.36kB/s   11:30:18       19,431,424   0%    1.71MB/s    1:42:26       19,955,712   0%    2.03MB/s    1:26:19       30,179,328   0%    2.74MB/s    1:03:54       30,965,760   0%    3.23MB/s    0:54:13       31,490,048   0%    1.50MB/s    1:56:34       32,014,336   0%    1.55MB/s    1:53:08       32,538,624   0%  410.55kB/s    7:16:44       32,800,768   0%  331.24kB/s    9:01:17       33,325,056   0%  325.23kB/s    9:11:16       34,635,776   0%  442.22kB/s    6:45:22       34,897,920   0%  305.65kB/s    9:46:29       35,422,208   0%  309.81kB/s    9:38:34       35,946,496   0%  335.12kB/s    8:54:51       37,257,216   0%  225.59kB/s   13:14:27       38,043,648   0%  306.95kB/s    9:43:49       39,354,368   0%  344.02kB/s    8:40:51       39,616,512   0%  315.69kB/s    9:27:35       40,927,232   0%  471.45kB/s    6:20:00       41,713,664   0%  486.96kB/s    6:07:53       41,975,808   0%  458.70kB/s    6:30:32       42,762,240   0%  590.77kB/s    5:03:12       43,024,384   0%  405.38kB/s    7:21:52       43,286,528   0%  273.46kB/s   10:55:01       44,072,960   0%  379.61kB/s    7:51:49       44,335,104   0%  284.44kB/s   10:29:39       44,597,248   0%  182.49kB/s   16:21:25       44,859,392   0%  175.36kB/s   17:01:17       45,645,824   0%  167.12kB/s   17:51:34       46,432,256   0%  215.69kB/s   13:50:12       46,694,400   0%  313.34kB/s    9:31:28       47,218,688   0%  310.14kB/s    9:37:20       48,267,264   0%  321.77kB/s    9:16:25       49,053,696   0%  245.82kB/s   12:08:16       49,577,984   0%  279.78kB/s   10:39:50       50,102,272   0%  332.66kB/s    8:58:06       51,412,992   0%  380.43kB/s    7:50:28       51,675,136   0%  421.05kB/s    7:05:04       62,423,040   0%    1.86MB/s    1:33:59       63,995,904   0%    2.13MB/s    1:21:54       64,520,192   0%    2.12MB/s    1:22:19       64,782,336   0%    1.34MB/s    2:09:56       65,568,768   0%  347.75kB/s    8:34:01       66,617,344   0%  250.86kB/s   11:52:29       66,879,488   0%  189.32kB/s   15:44:03       67,928,064   0%  358.33kB/s    8:18:43       69,238,784   0%  409.97kB/s    7:15:51       69,763,072   0%  401.62kB/s    7:24:53       74,219,520   0%    1.15MB/s    2:31:05       75,530,240   0%    1.36MB/s    2:08:28       76,578,816   0%    1.29MB/s    2:15:08       76,840,960   0%    1.24MB/s    2:20:30       77,627,392   0%  421.16kB/s    7:03:56       78,151,680   0%  298.02kB/s    9:59:05       78,938,112   0%  255.43kB/s   11:38:55       79,724,544   0%  323.08kB/s    9:12:31       80,248,832   0%  369.30kB/s    8:03:21       81,297,408   0%  440.87kB/s    6:44:51       81,559,552   0%  289.04kB/s   10:17:30       81,821,696   0%  221.93kB/s   13:24:12       84,180,992   0%  453.69kB/s    6:33:18       84,443,136   0%  312.39kB/s    9:31:12       85,753,856   0%  549.36kB/s    5:24:46       86,278,144   0%  615.91kB/s    4:49:39       87,326,720   0%  465.45kB/s    6:23:15       87,851,008   0%  678.77kB/s    4:22:47       88,899,584   0%  538.76kB/s    5:31:03       89,686,016   0%  546.92kB/s    5:26:05       90,210,304   0%  466.23kB/s    6:22:31       90,472,448   0%  435.89kB/s    6:49:07       92,307,456   0%  664.27kB/s    4:28:25       93,093,888   0%  639.88kB/s    4:38:38       94,404,608   0%  791.80kB/s    3:45:08       95,191,040   0%  918.48kB/s    3:14:04       96,239,616   0%  723.85kB/s    4:06:14       97,288,192   0%  721.89kB/s    4:06:52       98,074,624   0%  604.49kB/s    4:54:48       98,598,912   0%  521.88kB/s    5:41:27       99,385,344   0%  460.71kB/s    6:26:45      100,696,064   0%  472.39kB/s    6:17:09      100,958,208   0%  386.97kB/s    7:40:23      101,744,640   0%  425.54kB/s    6:58:38      102,793,216   0%  505.24kB/s    5:52:33      103,579,648   0%  473.91kB/s    6:15:50      104,628,224   0%  647.28kB/s    4:35:08      105,676,800   0%  769.54kB/s    3:51:24      106,201,088   0%  571.04kB/s    5:11:50      106,463,232   0%  479.32kB/s    6:11:30      107,511,808   0%  445.22kB/s    6:39:55      108,560,384   1%  382.25kB/s    7:45:45      109,084,672   1%  363.35kB/s    8:09:56      110,919,680   1%  563.29kB/s    5:15:59      111,181,824   1%  411.76kB/s    7:12:15      111,968,256   1%  379.13kB/s    7:49:26      113,803,264   1%  494.95kB/s    5:59:31      116,686,848   1%  651.70kB/s    4:32:58      117,735,424   1%  897.74kB/s    3:18:08      117,997,568   1%  928.27kB/s    3:11:37      120,094,720   1%    1.33MB/s    2:10:06      121,405,440   1%  946.40kB/s    3:07:53      122,716,160   1%  998.56kB/s    2:58:03      123,240,448   1%  860.94kB/s    3:26:30      123,764,736   1%  589.09kB/s    5:01:47      124,813,312   1%  497.38kB/s    5:57:23      125,075,456   1%  303.80kB/s    9:45:07      126,124,032   1%  439.79kB/s    6:44:08      127,434,752   1%  474.07kB/s    6:14:52      127,696,896   1%  373.47kB/s    7:55:50      127,959,040   1%  402.80kB/s    7:21:10      129,269,760   1%  431.16kB/s    6:52:07      129,531,904   1%  276.01kB/s   10:43:45      129,794,048   1%  295.95kB/s   10:00:21      130,318,336   1%  334.88kB/s    8:50:32      131,629,056   1%  329.71kB/s    8:58:48      132,415,488   1%  393.96kB/s    7:30:54      133,464,064   1%  471.39kB/s    6:16:47      134,774,784   1%  536.29kB/s    5:31:09      135,561,216   1%  488.36kB/s    6:03:37      135,823,360   1%  536.69kB/s    5:30:52      136,085,504   1%  475.84kB/s    6:13:11      137,396,224   1%  496.61kB/s    5:57:31      138,182,656   1%  447.94kB/s    6:36:20      138,969,088   1%  407.32kB/s    7:15:50      139,755,520   1%  477.10kB/s    6:12:03      141,328,384   1%  538.64kB/s    5:29:30      142,114,816   1%  597.39kB/s    4:57:05      142,639,104   1%  642.64kB/s    4:36:09      143,163,392   1%  563.11kB/s    5:15:08      143,949,824   1%  416.46kB/s    7:06:04      144,998,400   1%  453.10kB/s    6:31:35      145,784,832   1%  536.50kB/s    5:30:41      146,571,264   1%  473.67kB/s    6:14:31      147,619,840   1%  461.80kB/s    6:24:06      147,881,984   1%  289.83kB/s   10:12:00      148,144,128   1%  248.97kB/s   11:52:25      149,389,312   1%  366.59kB/s    8:03:47      150,765,568   1%  298.02kB/s    9:55:01      151,027,712   1%  359.63kB/s    8:13:04      153,124,864   1%  495.37kB/s    5:57:53      154,402,816   1%  498.63kB/s    5:55:30      154,697,728   1%  592.59kB/s    4:59:08      155,222,016   1%  630.44kB/s    4:41:09      155,746,304   1%  388.47kB/s    7:36:16      156,270,592   1%  208.82kB/s   14:08:46      156,532,736   1%  218.72kB/s   13:30:18      158,105,600   1%  353.86kB/s    8:20:47      158,629,888   1%  432.83kB/s    6:49:23      159,416,320   1%  638.80kB/s    4:37:22      160,464,896   1%  605.11kB/s    4:52:47      163,348,480   1%  723.37kB/s    4:04:51      164,659,200   1%  827.55kB/s    3:34:00      165,445,632   1%  823.73kB/s    3:34:58      165,707,776   1%  787.33kB/s    3:44:54      165,969,920   1%  430.40kB/s    6:51:25      166,756,352   1%  353.90kB/s    8:20:19      167,018,496   1%  201.23kB/s   14:39:52      167,804,928   1%  268.20kB/s   11:00:07      169,115,648   1%  411.85kB/s    7:09:49      169,639,936   1%  351.34kB/s    8:23:49      171,212,800   1%  562.56kB/s    5:14:36      171,737,088   1%  544.99kB/s    5:24:44      171,999,232   1%  377.63kB/s    7:48:38      172,785,664   1%  398.50kB/s    7:24:04      173,309,952   1%  285.36kB/s   10:20:07      173,572,096   1%  241.54kB/s   12:12:35      174,620,672   1%  281.94kB/s   10:27:33      176,193,536   1%  380.65kB/s    7:44:45      177,504,256   1%  496.67kB/s    5:56:08      178,028,544   1%  584.32kB/s    5:02:42      178,814,976   1%  625.53kB/s    4:42:44      179,339,264   1%  409.60kB/s    7:11:46      179,863,552   1%  329.33kB/s    8:56:58      180,912,128   1%  373.03kB/s    7:54:01      181,960,704   1%  448.99kB/s    6:33:47      182,222,848   1%  513.59kB/s    5:44:15      183,009,280   1%  500.16kB/s    5:53:28      183,533,568   1%  454.63kB/s    6:28:51      184,844,288   1%  411.21kB/s    7:09:51      185,892,864   1%  512.95kB/s    5:44:33      186,679,296   1%  447.44kB/s    6:34:58      187,465,728   1%  459.66kB/s    6:24:27      188,514,304   1%  455.86kB/s    6:27:37      189,038,592   1%  397.26kB/s    7:24:46      190,349,312   1%  531.36kB/s    5:32:29      191,135,744   1%  561.93kB/s    5:14:22      191,397,888   1%  388.09kB/s    7:35:10      191,660,032   1%  332.55kB/s    8:51:11      196,902,912   1%  845.55kB/s    3:28:48      198,475,776   1%  971.14kB/s    3:01:46      198,737,920   1%    1.35MB/s    2:08:00      199,524,352   1%    1.46MB/s    1:57:46      200,048,640   1%  681.46kB/s    4:19:01      200,572,928   1%  383.23kB/s    7:40:33      201,097,216   1%  278.33kB/s   10:34:06      202,145,792   1%  276.49kB/s   10:38:16      202,407,936   1%  238.14kB/s   12:21:01      203,456,512   1%  246.26kB/s   11:56:31      204,767,232   1%  415.54kB/s    7:04:35      205,553,664   1%  431.14kB/s    6:49:10      206,340,096   1%  511.18kB/s    5:45:05      207,126,528   1%  642.52kB/s    4:34:31      208,961,536   1%  575.77kB/s    5:06:18      209,485,824   1%  522.80kB/s    5:37:19      210,010,112   1%  471.77kB/s    6:13:47      210,796,544   1%  505.07kB/s    5:49:07      212,107,264   1%  505.60kB/s    5:48:42      212,631,552   1%  443.99kB/s    6:37:04      213,942,272   1%  531.19kB/s    5:31:51      214,990,848   1%  409.03kB/s    7:10:55      215,777,280   1%  376.51kB/s    7:48:06      217,350,144   2%  446.64kB/s    6:34:32      217,874,432   2%  398.38kB/s    7:22:19      218,398,720   2%  487.48kB/s    6:01:27      220,233,728   2%  641.60kB/s    4:34:34      221,544,448   2%  749.63kB/s    3:54:58      222,330,880   2%  775.20kB/s    3:47:12      224,165,888   2%  985.65kB/s    2:58:40      224,428,032   2%  722.02kB/s    4:03:54      226,000,896   2%  902.16kB/s    3:15:10      227,049,472   2%  966.65kB/s    3:02:08      227,835,904   2%  760.77kB/s    3:51:24      228,884,480   2%  934.71kB/s    3:08:19      229,146,624   2%  661.78kB/s    4:25:59      229,933,056   2%  567.06kB/s    5:10:23      230,719,488   2%  463.69kB/s    6:19:33      232,030,208   2%  490.19kB/s    5:58:59      236,224,512   2%    1.09MB/s    2:38:06      237,273,088   2%    1.12MB/s    2:33:54      238,321,664   2%    1.35MB/s    2:07:07      238,583,808   2%    1.11MB/s    2:34:35      238,845,952   2%  415.38kB/s    7:03:22      240,418,816   2%  483.09kB/s    6:03:58      242,515,968   2%  688.63kB/s    4:15:17      244,088,832   2%  831.81kB/s    3:31:18      249,331,712   2%    1.65MB/s    1:44:02      253,788,160   2%    1.66MB/s    1:43:10      254,574,592   2%    1.35MB/s    2:07:11      255,361,024   2%    1.36MB/s    2:06:27      255,885,312   2%  731.18kB/s    4:00:07      256,671,744   2%  419.86kB/s    6:58:09      257,196,032   2%  390.96kB/s    7:29:02      258,244,608   2%  453.10kB/s    6:27:25      259,031,040   2%  467.86kB/s    6:15:09      259,293,184   2%  383.64kB/s    7:37:31      259,817,472   2%  363.74kB/s    8:02:31      261,914,624   2%  507.58kB/s    5:45:42      263,225,344   2%  450.26kB/s    6:29:40      264,273,920   2%  478.74kB/s    6:06:27      264,798,208   2%  529.62kB/s    5:31:14      265,322,496   2%  311.20kB/s    9:23:41      267,943,936   2%  583.88kB/s    5:00:21      268,992,512   2%  693.77kB/s    4:12:45      269,778,944   2%  728.47kB/s    4:00:42      270,565,376   2%  984.05kB/s    2:58:10      271,613,952   2%  750.10kB/s    3:53:43      272,662,528   2%  697.96kB/s    4:11:09      273,448,960   2%  452.53kB/s    6:27:20      274,235,392   2%  407.09kB/s    7:10:33      275,546,112   2%  386.40kB/s    7:33:33      276,332,544   2%  382.21kB/s    7:38:28      277,118,976   2%  529.47kB/s    5:30:56      277,381,120   2%  371.28kB/s    7:51:55      279,216,128   2%  444.61kB/s    6:34:01      284,721,152   2%  943.02kB/s    3:05:40      284,983,296   2%  738.46kB/s    3:57:06      286,031,872   2%    1.01MB/s    2:50:01      286,556,160   2%  992.52kB/s    2:56:23      287,080,448   2%  312.58kB/s    9:20:02      287,604,736   2%  456.00kB/s    6:23:52      288,129,024   2%  352.44kB/s    8:16:39      288,653,312   2%  259.40kB/s   11:14:44      292,847,616   2%  792.68kB/s    3:40:43      293,109,760   2%  783.33kB/s    3:43:21      294,944,768   2%  991.66kB/s    2:56:23      295,206,912   2%    1.37MB/s    2:05:05      296,255,488   2%  513.18kB/s    5:40:49      297,304,064   2%  618.45kB/s    4:42:47      298,614,784   2%  549.10kB/s    5:18:27      299,139,072   2%  588.15kB/s    4:57:18      299,663,360   2%  576.08kB/s    5:03:30      299,925,504   2%  454.63kB/s    6:24:35      300,711,936   2%  330.64kB/s    8:48:45      301,236,224   2%  332.36kB/s    8:46:00      301,760,512   2%  378.56kB/s    7:41:47      302,022,656   2%  368.21kB/s    7:54:45      302,546,944   2%  370.48kB/s    7:51:49      303,071,232   2%  378.30kB/s    7:42:02      303,333,376   2%  257.29kB/s   11:19:20      304,381,952   2%  378.45kB/s    7:41:48      305,168,384   2%  324.83kB/s    8:57:59      306,216,960   2%  365.32kB/s    7:58:18      307,003,392   2%  516.65kB/s    5:38:11      308,051,968   2%  535.97kB/s    5:25:58      308,314,112   2%  522.09kB/s    5:34:37      309,100,544   2%  402.80kB/s    7:13:41      310,673,408   2%  492.98kB/s    5:54:18      311,459,840   2%  377.37kB/s    7:42:49      311,984,128   2%  450.59kB/s    6:27:35      312,246,272   2%  451.76kB/s    6:26:34      313,819,136   2%  480.53kB/s    6:03:22      314,343,424   2%  435.58kB/s    6:40:51      314,867,712   2%  402.75kB/s    7:13:30      315,916,288   2%  537.25kB/s    5:24:56      316,964,864   2%  378.46kB/s    7:41:13      317,489,152   2%  458.99kB/s    6:20:17      317,751,296   2%  419.86kB/s    6:55:43      319,586,304   2%  531.36kB/s    5:28:26      320,372,736   2%  621.82kB/s    4:40:37      327,974,912   3%    1.74MB/s    1:37:37      328,237,056   3%    1.75MB/s    1:37:10      329,547,776   3%    1.59MB/s    1:47:19      330,072,064   3%    1.26MB/s    2:14:52      330,858,496   3%  404.25kB/s    7:11:14      331,382,784   3%  481.81kB/s    6:01:48      331,907,072   3%  369.88kB/s    7:51:15      332,693,504   3%  520.85kB/s    5:34:38      333,217,792   3%  463.40kB/s    6:16:06      334,528,512   3%  502.21kB/s    5:47:00      336,887,808   3%  808.24kB/s    3:35:33      339,771,392   3%  929.16kB/s    3:07:27      340,033,536   3%  832.42kB/s    3:29:14      341,082,112   3%  874.44kB/s    3:19:09      341,868,544   3%  594.84kB/s    4:52:45      342,130,688   3%  296.79kB/s    9:46:44      342,392,832   3%  303.00kB/s    9:34:42      343,179,264   3%  261.89kB/s   11:04:51      344,227,840   3%  268.28kB/s   10:48:58      346,062,848   3%  493.00kB/s    5:53:05      346,587,136   3%  570.39kB/s    5:05:10      347,897,856   3%  578.89kB/s    5:00:38      348,160,000   3%  627.35kB/s    4:37:25      348,422,144   3%  389.58kB/s    7:26:43      348,946,432   3%  371.25kB/s    7:48:45      349,470,720   3%  300.70kB/s    9:38:42      349,995,008   3%  335.39kB/s    8:38:49      350,781,440   3%  409.82kB/s    7:04:34      351,305,728   3%  421.13kB/s    6:53:08      353,665,024   3%  660.01kB/s    4:23:33      353,927,168   3%  635.97kB/s    4:33:30      354,975,744   3%  655.57kB/s    4:25:18      356,286,464   3%  741.35kB/s    3:54:34      357,072,896   3%  571.04kB/s    5:04:31      358,645,760   3%  793.12kB/s    3:39:13      358,907,904   3%  679.05kB/s    4:16:02      359,694,336   3%  525.34kB/s    5:30:55      360,218,624   3%  496.12kB/s    5:50:23      360,742,912   3%  321.91kB/s    8:59:59      361,791,488   3%  472.64kB/s    6:07:44      363,102,208   3%  590.49kB/s    4:54:19      363,364,352   3%  492.86kB/s    5:52:36      363,626,496   3%  442.42kB/s    6:32:47      364,937,216   3%  485.08kB/s    5:58:12      367,296,512   3%  612.35kB/s    4:43:41      367,820,800   3%  717.32kB/s    4:02:10      369,655,808   3%  975.97kB/s    2:57:57      370,180,096   3%  803.77kB/s    3:36:04      370,704,384   3%  628.52kB/s    4:36:18      370,966,528   3%  578.75kB/s    5:00:03      371,228,672   3%  307.69kB/s    9:24:22      372,801,536   3%  546.77kB/s    5:17:33      373,063,680   3%  513.48kB/s    5:38:07      374,112,256   3%  612.32kB/s    4:43:31      376,209,408   3%  936.65kB/s    3:05:18      376,995,840   3%  678.26kB/s    4:15:53      377,520,128   3%  716.50kB/s    4:02:13      378,306,560   3%  571.11kB/s    5:03:51      380,403,712   3%  533.75kB/s    5:25:03      380,928,000   3%  538.64kB/s    5:22:05      382,763,008   3%  617.84kB/s    4:40:45      385,646,592   3%    1.04MB/s    2:42:17      385,908,736   3%  800.71kB/s    3:36:34      386,170,880   3%  618.51kB/s    4:40:21      387,481,600   3%  582.55kB/s    4:57:37      387,743,744   3%  262.43kB/s   11:00:40      388,268,032   3%  302.64kB/s    9:32:51      389,578,752   3%  432.54kB/s    6:40:46      390,365,184   3%  407.64kB/s    7:05:12      391,413,760   3%  498.68kB/s    5:47:33      391,938,048   3%  534.61kB/s    5:24:11      392,986,624   3%  572.71kB/s    5:02:35      393,248,768   3%  409.60kB/s    7:03:04      393,510,912   3%  305.95kB/s    9:26:23      394,821,632   3%  349.60kB/s    8:15:36      395,083,776   3%  281.16kB/s   10:16:12      395,608,064   3%  339.07kB/s    8:30:57      396,918,784   3%  378.18kB/s    7:38:03      398,491,648   3%  420.26kB/s    6:52:07      399,540,224   3%  527.00kB/s    5:28:37      400,064,512   3%  488.55kB/s    5:54:28      400,588,800   3%  528.07kB/s    5:27:55      401,375,232   3%  474.63kB/s    6:04:48      407,928,832   3%    1.19MB/s    2:21:57      408,715,264   3%    1.50MB/s    1:52:25      409,501,696   3%    1.39MB/s    2:01:23      410,288,128   3%    1.46MB/s    1:55:26      414,744,576   3%  995.22kB/s    2:53:45      415,531,008   3%  909.17kB/s    3:10:11      415,793,152   3%  891.21kB/s    3:14:01      416,841,728   3%  788.27kB/s    3:39:20      417,103,872   3%  274.97kB/s   10:28:45      418,414,592   3%  326.23kB/s    8:49:54      418,938,880   3%  325.08kB/s    8:51:44      423,657,472   3%  741.95kB/s    3:52:52      424,706,048   3%  872.49kB/s    3:18:00      425,230,336   3%  671.51kB/s    4:17:15      427,065,344   3%  843.18kB/s    3:24:50      428,113,920   3%  444.85kB/s    6:28:14      429,162,496   3%  506.58kB/s    5:40:53      430,735,360   3%  857.14kB/s    3:21:26      431,259,648   3%  622.40kB/s    4:37:24      431,783,936   4%  641.49kB/s    4:29:08      432,832,512   4%  657.13kB/s    4:22:42      435,191,808   4%  734.14kB/s    3:55:05      435,453,952   4%  768.19kB/s    3:44:39      436,240,384   4%  737.63kB/s    3:53:57      436,764,672   4%  660.47kB/s    4:21:16      438,337,536   4%  361.88kB/s    7:56:46      438,599,680   4%  377.30kB/s    7:37:16      439,910,400   4%  420.26kB/s    6:50:29      440,958,976   4%  462.04kB/s    6:13:19      442,007,552   4%  615.70kB/s    4:40:07      442,269,696   4%  594.56kB/s    4:50:05      443,318,272   4%  468.67kB/s    6:07:58      444,104,704   4%  434.70kB/s    6:36:41      445,153,280   4%  436.74kB/s    6:34:48      446,201,856   4%  574.08kB/s    5:00:19      446,988,288   4%  622.87kB/s    4:36:46      448,299,008   4%  664.50kB/s    4:19:23      451,182,592   4%  733.80kB/s    3:54:50      451,706,880   4%  628.40kB/s    4:34:12      452,755,456   4%  756.99kB/s    3:47:36      453,541,888   4%  770.50kB/s    3:43:35      454,328,320   4%  508.44kB/s    5:38:49      454,852,608   4%  525.04kB/s    5:28:05      456,687,616   4%  460.54kB/s    6:13:58      456,949,760   4%  341.82kB/s    8:23:50      457,474,048   4%  357.88kB/s    8:01:13      458,522,624   4%  318.97kB/s    8:59:51      459,833,344   4%  341.60kB/s    8:24:02      460,881,920   4%  472.85kB/s    6:04:05      461,144,064   4%  388.34kB/s    7:23:18      463,241,216   4%  703.40kB/s    4:04:41      464,289,792   4%  459.75kB/s    6:14:20      465,076,224   4%  381.98kB/s    7:30:31      465,338,368   4%  382.88kB/s    7:29:27      466,386,944   4%  276.13kB/s   10:23:08      467,435,520   4%  338.81kB/s    8:27:48      468,221,952   4%  402.83kB/s    7:07:04      473,202,688   4%    1.07MB/s    2:36:55      473,464,832   4%    1.01MB/s    2:45:48      474,251,264   4%    1.18MB/s    2:22:24      475,037,696   4%    1.14MB/s    2:27:32      476,872,704   4%  544.10kB/s    5:15:55      477,659,136   4%  577.80kB/s    4:57:28      477,921,280   4%  502.81kB/s    5:41:50      478,707,712   4%  511.78kB/s    5:35:48      479,232,000   4%  364.50kB/s    7:51:29      479,756,288   4%  378.49kB/s    7:34:02      481,591,296   4%  527.37kB/s    5:25:47      481,853,440   4%  427.62kB/s    6:41:47      482,377,728   4%  417.45kB/s    6:51:33      483,426,304   4%  465.76kB/s    6:08:49      484,474,880   4%  423.52kB/s    6:45:34      484,999,168   4%  443.61kB/s    6:27:11      485,785,600   4%  538.77kB/s    5:18:46      486,309,888   4%  467.46kB/s    6:07:22      487,358,464   4%  393.46kB/s    7:16:26      488,144,896   4%  494.77kB/s    5:47:02      489,193,472   4%  447.13kB/s    6:23:58      489,455,616   4%  332.72kB/s    8:36:00      491,290,624   4%  489.36kB/s    5:50:46      491,814,912   4%  418.64kB/s    6:50:00      492,601,344   4%  466.43kB/s    6:07:58      493,387,776   4%  723.98kB/s    3:57:02      494,960,640   4%  654.73kB/s    4:22:04      496,009,216   4%  865.05kB/s    3:18:20      497,319,936   4%  744.91kB/s    3:50:18      498,368,512   4%  777.62kB/s    3:40:35      499,154,944   4%  658.42kB/s    4:20:30      499,679,232   4%  485.90kB/s    5:52:59      500,203,520   4%  466.30kB/s    6:07:48      500,989,952   4%  436.04kB/s    6:33:17      501,514,240   4%  365.54kB/s    7:49:07      502,038,528   4%  450.00kB/s    6:21:03      503,873,536   4%  703.57kB/s    4:03:40      504,922,112   4%  697.80kB/s    4:05:40      505,708,544   4%  849.44kB/s    3:21:47      506,757,120   4%  983.98kB/s    2:54:11      516,718,592   4%    2.46MB/s    1:07:53      518,553,600   4%    2.68MB/s    1:02:24      519,340,032   4%    2.29MB/s    1:12:54      519,602,176   4%    1.85MB/s    1:30:23      521,175,040   4%  677.67kB/s    4:12:33      521,437,184   4%  450.13kB/s    6:20:13      521,961,472   4%  449.44kB/s    6:20:47      522,223,616   4%  521.81kB/s    5:27:58      522,747,904   4%  317.75kB/s    8:58:34      526,155,776   4%  830.42kB/s    3:26:00      527,204,352   4%  939.10kB/s    3:02:08      527,990,784   4%  851.78kB/s    3:20:48      528,515,072   4%  839.97kB/s    3:23:37      529,039,360   4%  448.91kB/s    6:20:58      530,612,224   4%  544.06kB/s    5:14:18      531,660,800   4%  736.09kB/s    3:52:17      532,971,520   4%  884.19kB/s    3:13:21      533,495,808   4%  667.18kB/s    4:16:13      534,282,240   4%  548.35kB/s    5:11:43      535,592,960   4%  543.83kB/s    5:14:16      536,117,248   4%  420.88kB/s    6:46:04      536,641,536   4%  554.51kB/s    5:08:11      537,165,824   4%  463.08kB/s    6:09:01      538,214,400   4%  439.03kB/s    6:29:12      538,476,544   4%  386.45kB/s    7:22:09      538,738,688   4%  308.62kB/s    9:13:38      540,049,408   5%  334.01kB/s    8:31:29      540,835,840   5%  298.09kB/s    9:33:04      542,670,848   5%  505.43kB/s    5:37:55      543,719,424   5%  652.89kB/s    4:21:34      544,768,000   5%  814.42kB/s    3:29:40      545,816,576   5%  830.32kB/s    3:25:38      547,913,728   5%  614.94kB/s    4:37:36      548,962,304   5%  578.40kB/s    4:55:06      549,486,592   5%  489.85kB/s    5:48:26      549,748,736   5%  382.24kB/s    7:26:31      551,059,456   5%  401.62kB/s    7:04:55      551,845,888   5%  347.05kB/s    8:11:41      552,632,320   5%  425.31kB/s    6:41:11      553,156,608   5%  544.86kB/s    5:13:09      555,515,904   5%  687.41kB/s    4:08:09      555,778,048   5%  721.94kB/s    3:56:16      556,564,480   5%  752.50kB/s    3:46:40      558,137,344   5%  926.48kB/s    3:04:04      560,758,784   5%    1.01MB/s    2:45:12      561,283,072   5%  748.96kB/s    3:47:38      562,069,504   5%  593.77kB/s    4:47:06      562,855,936   5%  512.51kB/s    5:32:36      563,642,368   5%  287.64kB/s    9:52:34      566,001,664   5%  590.84kB/s    4:48:24      566,263,808   5%  678.48kB/s    4:11:09      566,525,952   5%  606.33kB/s    4:41:02      567,312,384   5%  662.48kB/s    4:17:11      568,360,960   5%  365.95kB/s    7:45:33      569,147,392   5%  407.29kB/s    6:58:16      569,409,536   5%  412.18kB/s    6:53:17      570,982,400   5%  352.76kB/s    8:02:50      572,555,264   5%  432.84kB/s    6:33:26      573,603,840   5%  498.91kB/s    5:41:18      574,128,128   5%  523.22kB/s    5:25:26      574,652,416   5%  636.93kB/s    4:27:19      575,438,848   5%  553.35kB/s    5:07:40      576,487,424   5%  536.69kB/s    5:17:11      578,584,576   5%  789.12kB/s    3:35:40      579,108,864   5%  860.76kB/s    3:17:43      580,157,440   5%  935.82kB/s    3:01:50      582,516,736   5%  840.54kB/s    3:22:24      583,303,168   5%  678.55kB/s    4:10:42      584,089,600   5%  505.30kB/s    5:36:38      584,613,888   5%  448.75kB/s    6:19:02      585,662,464   5%  386.85kB/s    7:19:39      586,711,040   5%  432.21kB/s    6:33:28      587,235,328   5%  502.12kB/s    5:38:40      588,283,904   5%  541.96kB/s    5:13:44      589,332,480   5%  589.57kB/s    4:48:22      590,905,344   5%  667.97kB/s    4:14:29      591,691,776   5%  825.34kB/s    3:25:57      592,216,064   5%  677.13kB/s    4:11:01      593,002,496   5%  633.10kB/s    4:28:27      593,788,928   5%  486.36kB/s    5:49:25      594,575,360   5%  537.51kB/s    5:16:09      595,361,792   5%  360.35kB/s    7:51:32      596,672,512   5%  358.62kB/s    7:53:45      598,507,520   5%  465.45kB/s    6:04:57      599,031,808   5%  417.22kB/s    6:47:07      599,818,240   5%  541.36kB/s    5:13:44      600,604,672   5%  486.32kB/s    5:49:13      601,653,248   5%  385.20kB/s    7:20:50      603,488,256   5%  580.50kB/s    4:52:28      604,274,688   5%  627.81kB/s    4:30:25      608,731,136   5%    1.25MB/s    2:12:33      608,993,280   5%  991.56kB/s    2:51:08      609,517,568   5%  703.21kB/s    4:01:17      610,041,856   5%  742.32kB/s    3:48:34      611,090,432   5%  316.88kB/s    8:55:24      611,876,864   5%  451.28kB/s    6:15:55      612,663,296   5%  564.60kB/s    5:00:26      615,022,592   5%  985.81kB/s    2:52:01      615,546,880   5%  846.86kB/s    3:20:15      616,595,456   5%  776.67kB/s    3:38:19      617,381,888   5%  506.43kB/s    5:34:48      617,644,032   5%  280.15kB/s   10:05:12      620,003,328   5%  499.94kB/s    5:39:03      620,265,472   5%  459.43kB/s    6:08:56      620,789,760   5%  555.31kB/s    5:05:13      622,624,768   5%  631.61kB/s    4:28:18      623,411,200   5%  346.31kB/s    8:09:18      626,032,640   5%  585.33kB/s    4:49:25      626,819,072   5%  694.91kB/s    4:03:45      627,081,216   5%  534.71kB/s    5:16:47      635,994,112   5%    1.88MB/s    1:27:58      636,256,256   5%    1.01MB/s    2:43:44      637,042,688   5%    1.01MB/s    2:43:44      637,304,832   5%  985.98kB/s    2:51:37      639,401,984   5%  277.33kB/s   10:10:02      639,664,128   5%  326.02kB/s    8:38:55      641,761,280   5%  391.34kB/s    7:12:13      642,547,712   5%  465.41kB/s    6:03:24      643,072,000   5%  329.23kB/s    8:33:41      643,596,288   5%  385.16kB/s    7:19:05      645,169,152   5%  405.01kB/s    6:57:29      645,955,584   5%  379.22kB/s    7:25:51      647,004,160   5%  530.02kB/s    5:18:58      648,314,880   6%  570.01kB/s    4:56:32      648,577,024   6%  370.68kB/s    7:36:00      649,625,600   6%  484.65kB/s    5:48:44      651,984,896   6%  696.05kB/s    4:02:45      653,557,760   6%  852.62kB/s    3:18:09      654,082,048   6%    1.11MB/s    2:28:59      655,130,624   6%  997.22kB/s    2:49:23      655,392,768   6%  586.12kB/s    4:48:11      656,179,200   6%  452.54kB/s    6:13:14      656,965,632   6%  464.84kB/s    6:03:20      658,800,640   6%  669.41kB/s    4:12:15      659,324,928   6%  615.48kB/s    4:34:20      659,849,216   6%  542.70kB/s    5:11:07      660,635,648   6%  573.07kB/s    4:54:36      661,422,080   6%  285.01kB/s    9:52:19      663,519,232   6%  504.19kB/s    5:34:45      664,567,808   6%  534.08kB/s    5:15:59      665,354,240   6%  537.19kB/s    5:14:08      666,140,672   6%  771.86kB/s    3:38:36      666,664,960   6%  400.63kB/s    7:01:10      666,927,104   6%  348.83kB/s    8:03:41      675,053,568   6%    1.40MB/s    1:57:34      675,315,712   6%    1.35MB/s    2:01:34      675,840,000   6%    1.53MB/s    1:47:55      676,888,576   6%  946.86kB/s    2:58:01      677,412,864   6%  212.43kB/s   13:13:27      678,199,296   6%  252.76kB/s   11:06:47      678,461,440   6%  232.60kB/s   12:04:34      679,510,016   6%  312.00kB/s    9:00:06      679,772,160   6%  295.20kB/s    9:30:51      682,655,744   6%  426.33kB/s    6:35:08      682,917,888   6%  463.03kB/s    6:03:49      683,442,176   6%  519.69kB/s    5:24:08      684,752,896   6%  427.15kB/s    6:34:18      685,277,184   6%  289.33kB/s    9:42:06      685,539,328   6%  282.94kB/s    9:55:14      685,801,472   6%  224.28kB/s   12:30:54      686,325,760   6%  224.76kB/s   12:29:15      686,587,904   6%  176.16kB/s   15:55:55      687,374,336   6%  245.65kB/s   11:25:28      688,160,768   6%  267.75kB/s   10:28:50      688,685,056   6%  291.42kB/s    9:37:43      691,044,352   6%  564.53kB/s    4:58:09      691,830,784   6%  414.16kB/s    6:46:23      699,170,816   6%    1.10MB/s    2:28:56      699,432,960   6%    1.09MB/s    2:30:41      700,219,392   6%  957.16kB/s    2:55:41      701,530,112   6%    1.39MB/s    1:58:09      701,792,256   6%  305.74kB/s    9:09:57      703,365,120   6%  419.08kB/s    6:41:10      704,151,552   6%  343.19kB/s    8:09:49      704,937,984   6%  232.68kB/s   12:02:25      706,510,848   6%  334.66kB/s    8:22:11      707,559,424   6%  300.45kB/s    9:19:19      708,345,856   6%  342.27kB/s    8:10:56      709,394,432   6%  467.96kB/s    5:59:02      709,656,576   6%  433.65kB/s    6:27:26      710,443,008   6%  427.25kB/s    6:33:13      711,491,584   6%  429.11kB/s    6:31:28      711,753,728   6%  379.38kB/s    7:22:46      713,064,448   6%  599.21kB/s    4:40:18      714,113,024   6%  595.35kB/s    4:42:05      714,637,312   6%  538.00kB/s    5:12:08      715,423,744   6%  618.46kB/s    4:31:30      716,210,176   6%  438.79kB/s    6:22:39      719,093,760   6%  578.15kB/s    4:50:20      720,142,336   6%  676.31kB/s    4:08:10      720,666,624   6%  524.38kB/s    5:20:03      723,025,920   6%  745.35kB/s    3:45:07      723,812,352   6%  607.51kB/s    4:36:10      724,074,496   6%  473.72kB/s    5:54:09      724,860,928   6%  603.86kB/s    4:37:48      725,909,504   6%  418.18kB/s    6:41:07      726,433,792   6%  364.05kB/s    7:40:44      727,744,512   6%  580.88kB/s    4:48:43      728,006,656   6%  490.81kB/s    5:41:41      728,530,944   6%  418.10kB/s    6:41:06      729,055,232   6%  487.06kB/s    5:44:17      729,841,664   6%  348.30kB/s    8:01:25      730,890,240   6%  402.75kB/s    6:56:17      731,152,384   6%  365.77kB/s    7:38:22      731,676,672   6%  285.52kB/s    9:47:09      733,773,824   6%  417.94kB/s    6:41:02      734,822,400   6%  503.74kB/s    5:32:42      736,657,408   6%  601.34kB/s    4:38:39      736,919,552   6%  709.83kB/s    3:56:03      737,443,840   6%  492.31kB/s    5:40:20      738,230,272   6%  436.80kB/s    6:23:33      738,492,416   6%  280.26kB/s    9:57:46      739,540,992   6%  406.48kB/s    6:52:07      739,803,136   6%  433.00kB/s    6:26:51      740,065,280   6%  339.01kB/s    8:14:06      740,589,568   6%  407.32kB/s    6:51:13      742,686,720   6%  639.73kB/s    4:21:46      743,473,152   6%  629.10kB/s    4:26:10      743,997,440   6%  635.87kB/s    4:23:19      746,356,736   6%  913.40kB/s    3:03:16      746,618,880   6%  400.79kB/s    6:57:40      747,405,312   6%  417.53kB/s    6:40:53      748,191,744   6%  470.86kB/s    5:55:27      748,716,032   6%  260.93kB/s   10:41:25      750,288,896   6%  595.35kB/s    4:41:04      751,075,328   6%  467.70kB/s    5:57:45      752,123,904   6%  518.50kB/s    5:22:40      752,910,336   6%  535.49kB/s    5:12:24      753,434,624   6%  349.69kB/s    7:58:23      754,221,056   6%  468.94kB/s    5:56:42      755,269,632   6%  478.06kB/s    5:49:51      755,793,920   7%  467.46kB/s    5:57:46      756,580,352   7%  719.78kB/s    3:52:20      758,415,360   7%  947.49kB/s    2:56:28      759,201,792   7%  547.48kB/s    5:05:22      759,463,936   7%  460.67kB/s    6:02:55      761,561,088   7%  564.20kB/s    4:56:15      762,609,664   7%  439.25kB/s    6:20:29      762,871,808   7%  495.23kB/s    5:37:28      763,920,384   7%  614.43kB/s    4:31:58      765,755,392   7%  624.58kB/s    4:27:30      766,017,536   7%  497.16kB/s    5:36:03      767,328,256   7%  476.46kB/s    5:50:36      767,590,400   7%  414.91kB/s    6:42:36      768,901,120   7%  368.96kB/s    7:32:41      772,571,136   7%  662.32kB/s    4:12:05      774,144,000   7%  860.06kB/s    3:14:06      774,406,144   7%  709.52kB/s    3:55:16      775,454,720   7%  684.78kB/s    4:03:45      776,241,152   7%  502.74kB/s    5:31:59      776,765,440   7%  289.30kB/s    9:36:54      778,600,448   7%  522.38kB/s    5:19:25      778,862,592   7%  378.05kB/s    7:21:22      779,124,736   7%  239.66kB/s   11:36:13      780,173,312   7%  332.87kB/s    8:21:13      781,221,888   7%  250.96kB/s   11:04:44      781,746,176   7%  274.68kB/s   10:07:18      782,532,608   7%  435.66kB/s    6:22:52      783,581,184   7%  481.55kB/s    5:46:20      784,105,472   7%  405.76kB/s    6:51:00      786,202,624   7%  657.00kB/s    4:13:47      786,989,056   7%  643.31kB/s    4:19:10      787,513,344   7%  490.42kB/s    5:39:56      788,037,632   7%  569.14kB/s    4:52:54      788,561,920   7%  294.55kB/s    9:25:56      789,348,352   7%  289.96kB/s    9:34:52      791,969,792   7%  614.52kB/s    4:31:10      792,231,936   7%  494.75kB/s    5:36:49      792,494,080   7%  565.04kB/s    4:54:54      794,066,944   7%  753.19kB/s    3:41:12      794,329,088   7%  345.38kB/s    8:02:23      795,115,520   7%  387.61kB/s    7:09:47      795,639,808   7%  401.99kB/s    6:54:23      796,426,240   7%  218.14kB/s   12:43:35      796,688,384   7%  239.28kB/s   11:36:06      796,950,528   7%  226.29kB/s   12:16:02      797,474,816   7%  246.59kB/s   11:15:24      797,999,104   7%  332.68kB/s    8:20:36      798,523,392   7%  398.05kB/s    6:58:22      799,309,824   7%  457.42kB/s    6:04:02      799,571,968   7%  340.71kB/s    8:08:44      800,882,688   7%  402.34kB/s    6:53:48      801,406,976   7%  242.97kB/s   11:25:13      802,193,408   7%  244.70kB/s   11:20:18      803,241,984   7%  335.36kB/s    8:16:20      804,028,416   7%  227.84kB/s   12:10:30      804,814,848   7%  369.37kB/s    7:30:34      805,339,136   7%  310.02kB/s    8:56:48      805,863,424   7%  247.41kB/s   11:12:36      806,912,000   7%  403.79kB/s    6:52:05      807,960,576   7%  448.99kB/s    6:10:33      808,484,864   7%  558.55kB/s    4:57:51      809,271,296   7%  629.71kB/s    4:24:10      810,582,016   7%  733.52kB/s    3:46:45      811,106,304   7%  609.40kB/s    4:32:55      811,368,448   7%  507.48kB/s    5:27:44      812,154,880   7%  545.21kB/s    5:05:02      812,941,312   7%  464.98kB/s    5:57:37      813,203,456   7%  290.04kB/s    9:33:19      813,727,744   7%  354.73kB/s    7:48:44      815,333,376   7%  478.86kB/s    5:47:11      816,349,184   7%  499.70kB/s    5:32:40      817,397,760   7%  715.71kB/s    3:52:14      818,708,480   7%  797.25kB/s    3:28:27      819,232,768   7%  462.64kB/s    5:59:13      820,281,344   7%  447.19kB/s    6:11:35      821,067,776   7%  472.39kB/s    5:51:44      822,116,352   7%  400.48kB/s    6:54:51      823,689,216   7%  650.52kB/s    4:15:21      823,951,360   7%  494.21kB/s    5:36:06      824,737,792   7%  452.53kB/s    6:07:02      825,262,080   7%  439.30kB/s    6:18:04      825,524,224   7%  245.98kB/s   11:15:10      826,048,512   7%  271.44kB/s   10:11:50      826,310,656   7%  174.55kB/s   15:51:26      826,572,800   7%  139.80kB/s   19:47:53      827,883,520   7%  265.19kB/s   10:26:07      828,145,664   7%  226.25kB/s   12:13:53      828,669,952   7%  308.02kB/s    8:59:01      829,718,528   7%  373.90kB/s    7:24:00      830,242,816   7%  272.79kB/s   10:08:32      831,029,248   7%  407.64kB/s    6:47:11      831,815,680   7%  453.36kB/s    6:06:06      832,339,968   7%  382.66kB/s    7:13:43      833,650,688   7%  518.54kB/s    5:20:01      840,990,720   7%    1.26MB/s    2:08:46      841,252,864   7%    1.15MB/s    2:20:38      842,563,584   7%    1.15MB/s    2:21:13      843,087,872   7%    1.08MB/s    2:29:54      843,612,160   7%  323.52kB/s    8:32:26      844,136,448   7%  364.96kB/s    7:34:13      844,660,736   7%  352.44kB/s    7:50:20      844,922,880   7%  306.22kB/s    9:01:18      845,709,312   7%  401.96kB/s    6:52:20      846,757,888   7%  501.47kB/s    5:30:29      847,020,032   7%  428.25kB/s    6:26:58      847,282,176   7%  380.57kB/s    7:15:27      849,379,328   7%  592.10kB/s    4:39:49      850,165,760   7%  494.72kB/s    5:34:52      850,427,904   7%  465.39kB/s    5:55:58      852,000,768   7%  664.55kB/s    4:09:15      852,262,912   7%  324.69kB/s    8:30:08      853,835,776   7%  419.43kB/s    6:34:51      855,146,496   7%  567.14kB/s    4:51:58      855,408,640   7%  390.29kB/s    7:04:15      856,719,360   7%  607.40kB/s    4:32:34      857,767,936   7%  636.92kB/s    4:19:55      858,554,368   7%  439.28kB/s    6:16:49      858,816,512   7%  482.18kB/s    5:43:17      859,602,944   7%  439.45kB/s    6:16:38      860,651,520   7%  442.98kB/s    6:13:36      861,437,952   7%  601.32kB/s    4:35:12      864,059,392   8%    1.02MB/s    2:38:43      864,583,680   8%  808.24kB/s    3:24:40      864,845,824   8%  642.01kB/s    4:17:40      866,418,688   8%  743.28kB/s    3:42:31      867,467,264   8%  471.45kB/s    5:50:47      867,991,552   8%  456.89kB/s    6:01:57      869,040,128   8%  579.84kB/s    4:45:10      869,564,416   8%  407.81kB/s    6:45:27      870,350,848   8%  419.86kB/s    6:33:47      870,875,136   8%  322.46kB/s    8:32:43      871,661,568   8%  272.17kB/s   10:07:24      872,710,144   8%  291.93kB/s    9:26:13      872,972,288   8%  236.05kB/s   11:40:14      875,593,728   8%  618.77kB/s    4:27:03      877,690,880   8%  881.57kB/s    3:07:24      878,215,168   8% 1004.11kB/s    2:44:31      879,263,744   8%  929.64kB/s    2:57:41      880,050,176   8%  615.99kB/s    4:28:08      880,836,608   8%  414.63kB/s    6:38:20      882,409,472   8%  460.33kB/s    5:58:44      882,933,760   8%  421.55kB/s    6:31:42      883,720,192   8%  444.61kB/s    6:11:22      884,768,768   8%  471.92kB/s    5:49:50      885,817,344   8%  535.22kB/s    5:08:25      886,603,776   8%  747.29kB/s    3:40:53      887,128,064   8%  590.59kB/s    4:39:28      887,652,352   8%  395.34kB/s    6:57:29      888,176,640   8%  273.02kB/s   10:04:30      888,700,928   8%  205.42kB/s   13:23:23      890,273,792   8%  235.40kB/s   11:40:56      891,584,512   8%  342.22kB/s    8:02:06      892,108,800   8%  381.63kB/s    7:12:17      892,370,944   8%  380.47kB/s    7:13:35      893,681,664   8%  609.52kB/s    4:30:37      894,468,096   8%  412.18kB/s    6:40:09      895,254,528   8%  454.57kB/s    6:02:48      895,516,672   8%  512.00kB/s    5:22:06      896,040,960   8%  347.98kB/s    7:53:53      896,565,248   8%  273.25kB/s   10:03:28      898,400,256   8%  397.62kB/s    6:54:38      899,186,688   8%  413.81kB/s    6:38:23      899,710,976   8%  447.44kB/s    6:08:25      901,283,840   8%  708.05kB/s    3:52:46      902,332,416   8%  623.98kB/s    4:24:06      902,594,560   8%  499.03kB/s    5:30:14      903,118,848   8%  498.35kB/s    5:30:40      904,167,424   8%  473.36kB/s    5:48:05      905,216,000   8%  438.90kB/s    6:15:22      906,002,432   8%  648.23kB/s    4:14:08      906,788,864   8%  441.00kB/s    6:13:32      907,051,008   8%  354.62kB/s    7:44:31      907,837,440   8%  340.34kB/s    8:03:58      908,099,584   8%  247.16kB/s   11:06:23      908,623,872   8%  288.20kB/s    9:31:29      909,410,304   8%  300.00kB/s    9:08:57      909,934,592   8%  226.65kB/s   12:06:34      910,458,880   8%  245.84kB/s   11:09:49      910,983,168   8%  225.79kB/s   12:09:14      911,769,600   8%  206.71kB/s   13:16:30      912,031,744   8%  194.22kB/s   14:07:43      912,293,888   8%  183.16kB/s   14:58:53      913,604,608   8%  282.94kB/s    9:41:48      915,439,616   8%  534.69kB/s    5:07:49      916,226,048   8%  482.05kB/s    5:41:23      917,274,624   8%  594.26kB/s    4:36:54      919,109,632   8%  747.19kB/s    3:40:11      920,682,496   8%  508.90kB/s    5:23:14      921,993,216   8%  761.29kB/s    3:36:03      922,255,360   8%  635.07kB/s    4:18:58      923,041,792   8%  465.68kB/s    5:53:09      924,090,368   8%  576.98kB/s    4:45:00      924,876,800   8%  481.45kB/s    5:41:31      925,925,376   8%  530.73kB/s    5:09:47      926,711,808   8%  443.67kB/s    6:10:32      927,498,240   8%  425.19kB/s    6:26:36      927,760,384   8%  339.69kB/s    8:03:55      928,808,960   8%  404.25kB/s    6:46:35      929,071,104   8%  444.19kB/s    6:10:01      929,595,392   8%  308.57kB/s    8:52:36      932,216,832   8%  602.52kB/s    4:32:41      933,265,408   8%  486.75kB/s    5:37:31      933,789,696   8%  504.05kB/s    5:25:55      934,838,272   8%  647.12kB/s    4:13:50      935,362,560   8%  446.25kB/s    6:08:04      935,624,704   8%  439.95kB/s    6:13:20      937,721,856   8%  777.64kB/s    3:31:10      941,654,016   8%    1.38MB/s    1:56:24      941,916,160   8%    1.37MB/s    1:57:11      942,440,448   8%    1.29MB/s    2:04:24      942,964,736   8%  874.62kB/s    3:07:39      943,226,880   8%  247.74kB/s   11:02:28      944,013,312   8%  302.56kB/s    9:02:24      945,848,320   8%  516.45kB/s    5:17:42      946,372,608   8%  587.99kB/s    4:39:02      947,159,040   8%  574.94kB/s    4:45:20      947,945,472   8%  506.06kB/s    5:24:09      948,469,760   8%  307.62kB/s    8:53:14      950,042,624   8%  432.12kB/s    6:19:32      950,566,912   8%  379.17kB/s    7:12:31      951,353,344   8%  453.78kB/s    6:01:22      952,139,776   8%  556.09kB/s    4:54:52      952,401,920   8%  358.32kB/s    7:37:36      952,664,064   8%  433.16kB/s    6:18:31      953,450,496   8%  435.47kB/s    6:16:29      955,023,360   8%  628.29kB/s    4:20:54      955,809,792   8%  635.84kB/s    4:17:47      957,120,512   8%  654.53kB/s    4:10:23      958,693,376   8%  712.50kB/s    3:49:59      959,217,664   8%  462.93kB/s    5:53:57      960,004,096   8%  407.32kB/s    6:42:14      960,528,384   8%  365.35kB/s    7:28:25      960,790,528   8%  238.97kB/s   11:25:33      961,576,960   8%  221.28kB/s   12:20:18      963,411,968   8%  377.41kB/s    7:13:58      964,198,400   8%  437.82kB/s    6:14:03      964,722,688   8%  406.05kB/s    6:43:18      965,246,976   8%  529.79kB/s    5:09:05      966,033,408   8%  402.58kB/s    6:46:43      967,081,984   8%  357.45kB/s    7:38:02      968,130,560   8%  384.25kB/s    7:06:02      968,916,992   8%  405.52kB/s    6:43:39      971,014,144   8%  483.88kB/s    5:38:13      971,800,576   9%  536.31kB/s    5:05:07      972,062,720   9%  544.37kB/s    5:00:36      972,849,152   9%  594.98kB/s    4:35:00      973,111,296   9%  385.61kB/s    7:04:19      973,635,584   9%  269.72kB/s   10:06:37      978,616,320   9%  908.57kB/s    2:59:59      979,140,608   9%  893.41kB/s    3:03:01      979,664,896   9%  841.77kB/s    3:14:15      980,451,328   9%    1.04MB/s    2:34:02      980,975,616   9%  283.15kB/s    9:37:24      982,548,480   9%  338.35kB/s    8:03:07      983,334,912   9%  389.10kB/s    7:00:04      986,218,496   9%  509.78kB/s    5:20:32      987,267,072   9%  613.85kB/s    4:26:10      987,791,360   9%  526.69kB/s    5:10:11      989,364,224   9%  561.62kB/s    4:50:51      991,985,664   9%  559.12kB/s    4:52:05      992,509,952   9%  571.81kB/s    4:45:35      993,296,384   9%  724.43kB/s    3:45:24      994,607,104   9%  766.58kB/s    3:32:58      994,869,248   9%  479.32kB/s    5:40:36      995,131,392   9%  403.34kB/s    6:44:45      997,752,832   9%  650.33kB/s    4:10:58      998,277,120   9%  514.20kB/s    5:17:23      998,539,264   9%  584.09kB/s    4:39:24      999,325,696   9%  815.45kB/s    3:20:07    1,000,898,560   9%  658.24kB/s    4:07:52    1,001,684,992   9%  541.75kB/s    5:01:08    1,001,947,136   9%  513.11kB/s    5:17:57    1,004,044,288   9%  708.81kB/s    3:50:06    1,004,306,432   9%  489.84kB/s    5:32:58    1,004,568,576   9%  552.16kB/s    4:55:23    1,005,355,008   9%  699.01kB/s    3:53:18    1,006,403,584   9%  362.15kB/s    7:30:16    1,006,665,728   9%  337.73kB/s    8:02:49    1,007,714,304   9%  443.61kB/s    6:07:32    1,009,811,456   9%  443.76kB/s    6:07:20    1,010,860,032   9%  450.98kB/s    6:01:25    1,011,384,320   9%  485.00kB/s    5:36:03    1,012,432,896   9%  502.18kB/s    5:24:31    1,012,957,184   9%  453.90kB/s    5:59:01    1,014,005,760   9%  568.89kB/s    4:46:25    1,014,792,192   9%  603.12kB/s    4:30:08    1,017,675,776   9%  780.25kB/s    3:28:45    1,018,200,064   9%  815.55kB/s    3:19:42    1,018,986,496   9%  750.85kB/s    3:36:54    1,020,297,216   9%  942.17kB/s    2:52:50    1,021,083,648   9%  651.27kB/s    4:10:00    1,021,870,080   9%  725.80kB/s    3:44:19    1,022,394,368   9%  610.53kB/s    4:26:39    1,025,015,808   9%  853.33kB/s    3:10:44    1,026,850,816   9% 1000.00kB/s    2:42:43    1,027,375,104   9%  774.75kB/s    3:30:01    1,028,947,968   9% 1015.39kB/s    2:40:13    1,029,734,400   9%  661.31kB/s    4:05:59    1,030,520,832   9%  461.74kB/s    5:52:17    1,032,093,696   9%  697.13kB/s    3:53:18    1,033,928,704   9%  711.63kB/s    3:48:30    1,034,452,992   9%  611.55kB/s    4:25:53    1,035,239,424   9%  723.73kB/s    3:44:39    1,035,501,568   9%  394.17kB/s    6:52:28    1,036,550,144   9%  317.78kB/s    8:31:34    1,037,074,432   9%  375.64kB/s    7:12:44    1,038,123,008   9%  376.72kB/s    7:11:27    1,038,909,440   9%  637.67kB/s    4:14:52    1,040,482,304   9%  485.28kB/s    5:34:51    1,041,006,592   9%  462.37kB/s    5:51:25    1,041,793,024   9%  386.67kB/s    7:00:12    1,042,055,168   9%  332.72kB/s    8:08:19    1,043,300,352   9%  422.28kB/s    6:24:42    1,045,200,896   9%  628.80kB/s    4:18:18    1,047,035,904   9%  892.30kB/s    3:01:59    1,047,560,192   9%  886.69kB/s    3:03:08    1,050,443,776   9%  998.00kB/s    2:42:39    1,052,016,640   9% 1021.96kB/s    2:38:49    1,052,540,928   9%  885.52kB/s    3:03:16    1,054,900,224   9%    1.21MB/s    2:11:16    1,055,162,368   9%  873.55kB/s    3:05:44    1,055,948,800   9%  729.62kB/s    3:42:22    1,059,094,528   9%    1.19MB/s    2:12:36    1,060,405,248   9%    1.01MB/s    2:36:26    1,064,861,696   9%    1.66MB/s    1:35:08    1,065,385,984   9%    1.31MB/s    2:00:54    1,065,910,272   9%    1.05MB/s    2:30:27    1,066,434,560   9%  793.96kB/s    3:24:07    1,066,696,704   9%  244.31kB/s   11:03:21    1,067,483,136   9%  333.77kB/s    8:05:31    1,068,531,712   9%  405.45kB/s    6:39:38    1,069,056,000   9%  483.20kB/s    5:35:18    1,069,318,144   9%  541.00kB/s    4:59:29    1,070,366,720   9%  577.64kB/s    4:40:27    1,070,628,864   9%  439.30kB/s    6:08:46    1,070,891,008   9%  388.72kB/s    6:56:44    1,071,153,152   9%  360.64kB/s    7:29:10    1,075,347,456   9%  933.59kB/s    2:53:26    1,076,133,888   9% 1015.11kB/s    2:39:29    1,077,182,464   9%    1.07MB/s    2:27:09    1,077,968,896   9%    1.21MB/s    2:10:47    1,079,803,904  10%  869.18kB/s    3:06:12    1,080,852,480  10%  859.70kB/s    3:08:14    1,081,114,624  10%  769.69kB/s    3:30:14    1,081,638,912  10%  719.82kB/s    3:44:47    1,082,425,344  10%  445.37kB/s    6:03:17    1,083,736,064  10%  457.96kB/s    5:53:15    1,083,998,208  10%  460.51kB/s    5:51:18    1,084,784,640  10%  346.41kB/s    7:46:57    1,088,716,800  10%  751.47kB/s    3:35:10    1,090,027,520  10%  542.09kB/s    4:58:14    1,090,813,952  10%  570.69kB/s    4:43:16    1,092,124,672  10%  807.75kB/s    3:20:06    1,092,911,104  10%  444.54kB/s    6:03:34    1,094,221,824  10%  690.49kB/s    3:54:02    1,094,746,112  10%  523.95kB/s    5:08:25    1,095,991,296  10%  532.13kB/s    5:03:38    1,097,367,552  10%  661.90kB/s    4:04:04    1,097,891,840  10%  459.31kB/s    5:51:42    1,098,940,416  10%  641.10kB/s    4:11:57    1,100,513,280  10%  615.56kB/s    4:22:21    1,101,299,712  10%  501.63kB/s    5:21:55    1,102,348,288  10%  679.26kB/s    3:57:42    1,103,396,864  10%  620.38kB/s    4:20:14    1,104,183,296  10%  490.22kB/s    5:29:19    1,105,068,032  10%  543.98kB/s    4:56:45    1,105,494,016  10%  490.81kB/s    5:28:52    1,106,280,448  10%  458.56kB/s    5:51:59    1,107,066,880  10%  545.95kB/s    4:55:37    1,110,212,608  10%  935.92kB/s    2:52:23    1,110,999,040  10%  923.55kB/s    2:54:40    1,111,523,328  10%  818.55kB/s    3:17:04    1,125,154,816  10%    2.80MB/s    0:56:08    1,131,970,560  10%    3.36MB/s    0:46:47    1,132,756,992  10%    3.73MB/s    0:42:08    1,133,543,424  10%    4.83MB/s    0:32:31    1,134,067,712  10%    1.86MB/s    1:24:34    1,136,164,864  10%  781.83kB/s    3:25:48    1,136,951,296  10%  763.61kB/s    3:30:42    1,144,029,184  10%    1.76MB/s    1:28:58    1,145,339,904  10%    1.91MB/s    1:22:04    1,146,126,336  10%    1.56MB/s    1:40:43    1,146,388,480  10%    1.49MB/s    1:45:41    1,147,437,056  10%  567.82kB/s    4:43:02    1,149,796,352  10%  757.92kB/s    3:31:59    1,150,058,496  10%  797.67kB/s    3:21:25    1,150,844,928  10%  903.65kB/s    2:57:47    1,151,631,360  10%  843.49kB/s    3:10:27    1,153,466,368  10%  724.63kB/s    3:41:39    1,154,514,944  10%  916.21kB/s    2:55:17    1,155,039,232  10%  865.60kB/s    3:05:31    1,156,874,240  10%  999.80kB/s    2:40:35    1,160,019,968  10%    1.25MB/s    2:05:23    1,162,117,120  10%    1.46MB/s    1:47:16    1,162,903,552  10%    1.39MB/s    1:52:44    1,163,689,984  10%    1.26MB/s    2:04:43    1,165,524,992  10%    1.02MB/s    2:34:00    1,166,049,280  10%  767.54kB/s    3:28:59    1,167,622,144  10%    1.00MB/s    2:36:12    1,172,078,592  10%    1.94MB/s    1:20:44    1,172,602,880  10%    1.63MB/s    1:36:17    1,173,913,600  10%    1.68MB/s    1:33:20    1,174,700,032  10%    1.36MB/s    1:54:54    1,176,010,752  10%  725.35kB/s    3:40:55    1,177,321,472  10%  872.56kB/s    3:03:37    1,178,107,904  10%  742.97kB/s    3:35:37    1,179,942,912  10%  968.96kB/s    2:45:18    1,180,729,344  10%  800.42kB/s    3:20:06    1,182,040,064  10%  764.94kB/s    3:29:21    1,183,350,784  10%  930.74kB/s    2:52:02    1,184,923,648  10%  848.27kB/s    3:08:43    1,186,496,512  10%    1.11MB/s    2:20:20    1,188,331,520  11%    1.25MB/s    2:04:35    1,189,117,952  11%    1.17MB/s    2:13:41    1,197,244,416  11%    2.77MB/s    0:56:18    1,200,652,288  11%    3.20MB/s    0:48:42    1,204,846,592  11%    3.73MB/s    0:41:46    1,205,895,168  11%    3.75MB/s    0:41:36    1,210,351,616  11%    2.96MB/s    0:52:42    1,211,924,480  11%    2.48MB/s    1:02:49    1,219,264,512  11%    3.25MB/s    0:47:56    1,220,575,232  11%    3.34MB/s    0:46:37    1,223,983,104  11%    3.00MB/s    0:51:50    1,229,225,984  11%    3.68MB/s    0:42:19    1,238,138,880  11%    3.97MB/s    0:39:07    1,242,595,328  11%    3.95MB/s    0:39:22    1,250,459,648  11%    4.63MB/s    0:33:33    1,257,537,536  11%    5.03MB/s    0:30:51    1,263,828,992  11%    4.55MB/s    0:34:05    1,267,499,008  11%    5.16MB/s    0:30:01    1,277,722,624  11%    5.96MB/s    0:25:59    1,292,664,832  11%    8.04MB/s    0:19:14    1,304,461,312  12%    9.51MB/s    0:16:14    1,311,277,056  12%   10.24MB/s    0:15:03    1,323,859,968  12%   10.76MB/s    0:14:19    1,343,520,768  12%   11.82MB/s    0:13:00    1,370,783,744  12%   15.44MB/s    0:09:55    1,404,600,320  13%   21.64MB/s    0:07:03    1,427,668,992  13%   24.06MB/s    0:06:20    1,469,087,744  13%   28.55MB/s    0:05:18    1,509,195,776  13%   31.39MB/s    0:04:48    1,541,603,328  14%   31.36MB/s    0:04:47    1,569,488,896  14%   32.87MB/s    0:04:33    1,601,208,320  14%   31.12MB/s    0:04:48    1,625,849,856  15%   27.53MB/s    0:05:25    1,648,918,528  15%   25.16MB/s    0:05:54    1,679,327,232  15%   25.64MB/s    0:05:47    1,719,599,104  15%   27.84MB/s    0:05:18    1,751,678,976  16%   29.36MB/s    0:05:00    1,778,417,664  16%   30.40MB/s    0:04:49    1,873,575,936  17%   45.36MB/s    0:03:11    1,998,618,624  18%   65.16MB/s    0:02:11    2,180,677,632  20%  101.17MB/s    0:01:23    2,375,876,608  22%  140.90MB/s    0:00:58    2,504,032,256  23%  150.12MB/s    0:00:53    2,504,294,400  23%  102.61MB/s    0:01:18    2,625,404,928  24%   89.93MB/s    0:01:28    2,687,533,056  24%   63.02MB/s    0:02:05    2,786,951,168  25%   57.32MB/s    0:02:16    2,867,101,696  26%   85.96MB/s    0:01:30    3,062,398,976  28%  103.39MB/s    0:01:12    3,125,575,680  28%  103.12MB/s    0:01:12    3,217,850,368  29%  101.42MB/s    0:01:12    3,274,997,760  30%   96.14MB/s    0:01:16    3,365,502,976  31%   71.83MB/s    0:01:40    3,444,047,872  31%   75.87MB/s    0:01:34    3,531,440,128  32%   74.71MB/s    0:01:34    3,620,241,408  33%   82.25MB/s    0:01:25    3,707,797,504  34%   81.39MB/s    0:01:24    3,814,293,504  35%   88.01MB/s    0:01:17    3,903,127,552  36%   88.35MB/s    0:01:16    4,003,463,168  37%   91.25MB/s    0:01:12    4,121,198,592  38%   98.56MB/s    0:01:06    4,234,969,088  39%  100.00MB/s    0:01:04    4,344,086,528  40%  104.82MB/s    0:01:00    4,399,857,664  40%   91.53MB/s    0:01:08    4,499,996,672  41%   87.13MB/s    0:01:10    4,623,728,640  42%   89.70MB/s    0:01:07    4,702,633,984  43%   82.61MB/s    0:01:11    4,790,288,384  44%   92.58MB/s    0:01:03    4,899,241,984  45%   95.14MB/s    0:01:00    4,905,009,152  45%   66.60MB/s    0:01:26    4,906,844,160  45%   39.88MB/s    0:02:24    5,002,526,720  46%   41.45MB/s    0:02:16    5,136,941,056  47%   46.43MB/s    0:01:58    5,234,524,160  48%   64.70MB/s    0:01:23    5,368,741,888  49%  109.99MB/s    0:00:48    5,502,435,328  50%  119.04MB/s    0:00:43    5,656,772,608  52%  123.78MB/s    0:00:40    5,798,395,904  53%  134.27MB/s    0:00:36    5,929,402,368  54%  133.77MB/s    0:00:35    6,076,891,136  56%  137.06MB/s    0:00:33    6,225,166,336  57%  135.62MB/s    0:00:32    6,382,682,112  59%  139.41MB/s    0:00:30    6,531,153,920  60%  143.58MB/s    0:00:28    6,692,306,944  62%  146.84MB/s    0:00:27    6,847,299,584  63%  148.44MB/s    0:00:25    7,008,223,232  64%  149.25MB/s    0:00:24    7,157,940,224  66%  149.55MB/s    0:00:23    7,312,867,328  67%  148.06MB/s    0:00:22    7,465,172,992  69%  147.42MB/s    0:00:22    7,640,481,792  70%  150.82MB/s    0:00:20    7,726,202,880  71%  135.55MB/s    0:00:22    7,886,635,008  73%  136.87MB/s    0:00:20    8,029,011,968  74%  134.53MB/s    0:00:20    8,194,719,744  75%  132.24MB/s    0:00:19    8,340,930,560  77%  146.67MB/s    0:00:16    8,426,651,648  78%  120.89MB/s    0:00:19    8,426,913,792  78%   86.16MB/s    0:00:26    8,430,059,520  78%   49.18MB/s    0:00:46    8,476,983,296  78%   28.05MB/s    0:01:20    8,565,194,752  79%   30.30MB/s    0:01:11    8,749,088,768  81%   72.86MB/s    0:00:27    8,890,974,208  82%  108.32MB/s    0:00:17    9,044,787,200  83%  135.44MB/s    0:00:12    9,192,898,560  85%  149.66MB/s    0:00:10    9,353,330,688  86%  143.85MB/s    0:00:09    9,530,015,744  88%  152.13MB/s    0:00:08    9,754,869,760  90%  169.04MB/s    0:00:05    9,969,958,912  92%  185.13MB/s    0:00:04   10,148,118,528  94%  189.63MB/s    0:00:03   10,357,080,064  95%  196.70MB/s    0:00:02   10,532,126,720  97%  184.85MB/s    0:00:01   10,736,762,880  99%  182.41MB/s    0:00:00   10,790,567,298 100%    4.75MB/s    0:36:04 (xfr#5, to-chk=3/15)
+oral_catalog/sample/P18161_216_S89_L004/P18161_216_S89_L004_1_census_stage_0.ini
+            273 100%    1.27kB/s    0:00:00              273 100%    1.27kB/s    0:00:00 (xfr#6, to-chk=2/15)
+oral_catalog/sample/P18161_216_S89_L004/P18161_216_S89_L004_2.fastq
+         32,768   0%  152.38kB/s   19:34:32      176,324,608   1%  168.16MB/s    0:01:01      279,019,520   2%  133.11MB/s    0:01:16      453,279,744   4%  144.19MB/s    0:01:09      709,394,432   6%  169.26MB/s    0:00:57      914,882,560   8%  176.22MB/s    0:00:54    1,171,030,016  10%  212.78MB/s    0:00:43    1,266,974,720  11%  175.57MB/s    0:00:52    1,281,392,640  11%  103.33MB/s    0:01:29    1,508,605,952  14%  107.26MB/s    0:01:24    1,746,960,384  16%  104.06MB/s    0:01:24    2,002,190,336  18%  144.39MB/s    0:00:59    2,257,453,056  21%  232.89MB/s    0:00:35    2,489,942,016  23%  234.14MB/s    0:00:34    2,685,763,584  25%  224.00MB/s    0:00:35    2,873,458,688  26%  207.88MB/s    0:00:36    3,098,836,992  28%  200.75MB/s    0:00:37    3,272,638,464  30%  186.75MB/s    0:00:39    3,448,930,304  32%  182.09MB/s    0:00:39    3,625,779,200  33%  179.50MB/s    0:00:38    3,807,477,760  35%  169.08MB/s    0:00:40    3,973,677,056  37%  167.27MB/s    0:00:39    4,138,500,096  38%  164.49MB/s    0:00:39    4,230,774,784  39%  143.74MB/s    0:00:44    4,398,284,800  40%  140.37MB/s    0:00:44    4,575,690,752  42%  143.03MB/s    0:00:42    4,746,674,176  44%  144.53MB/s    0:00:40    4,907,368,448  45%  161.31MB/s    0:00:35    5,003,051,008  46%  142.37MB/s    0:00:39    5,004,886,016  46%   74.64MB/s    0:01:15    5,165,318,144  48%   71.08MB/s    0:01:16    5,320,048,640  49%   70.10MB/s    0:01:15    5,493,030,912  51%   84.01MB/s    0:01:00    5,669,650,432  52%  153.50MB/s    0:00:32    5,832,474,624  54%  159.18MB/s    0:00:30    5,981,503,488  55%  157.82MB/s    0:00:29    6,152,617,984  57%  157.38MB/s    0:00:28    6,340,509,696  59%  160.07MB/s    0:00:26    6,503,563,264  60%  160.08MB/s    0:00:25    6,685,294,592  62%  167.88MB/s    0:00:23    6,836,944,896  63%  163.24MB/s    0:00:23    7,016,873,984  65%  161.38MB/s    0:00:22    7,189,463,040  66%  163.65MB/s    0:00:21    7,371,194,368  68%  163.65MB/s    0:00:20    7,459,143,680  69%  148.46MB/s    0:00:21    7,631,568,896  71%  146.19MB/s    0:00:20    7,788,691,456  72%  142.51MB/s    0:00:20    7,952,957,440  74%  138.32MB/s    0:00:19    8,128,102,400  75%  159.09MB/s    0:00:16    8,259,665,920  76%  144.51MB/s    0:00:16    8,260,190,208  76%   78.78MB/s    0:00:30    8,384,348,160  78%   72.08MB/s    0:00:31    8,558,051,328  79%   71.83MB/s    0:00:29    8,765,734,912  81%   86.80MB/s    0:00:22    8,934,883,328  83%  160.98MB/s    0:00:10    9,102,983,168  84%  171.46MB/s    0:00:09    9,270,231,040  86%  169.92MB/s    0:00:08    9,457,139,712  88%  164.97MB/s    0:00:07    9,655,910,400  89%  171.99MB/s    0:00:06    9,866,608,640  91%  182.15MB/s    0:00:04   10,045,915,136  93%  185.03MB/s    0:00:03   10,232,365,056  95%  184.97MB/s    0:00:02   10,428,907,520  97%  184.44MB/s    0:00:01   10,618,568,704  98%  179.42MB/s    0:00:00   10,738,694,680 100%  150.27MB/s    0:01:08 (xfr#7, to-chk=1/15)
+oral_catalog/sample/P18161_216_S89_L004/P18161_216_S89_L004_2_census_stage_0.ini
+            273 100%    0.48kB/s    0:00:00              273 100%    0.48kB/s    0:00:00 (xfr#8, to-chk=0/15)
+working/
+
+sent 21,619,375,249 bytes  received 267 bytes  9,585,180.90 bytes/sec
+total size is 21,614,097,464  speedup is 1.00
+...Mon Jun  7 03:25:23 CEST 2021: Recover - done
+

@@ -1,0 +1,364 @@
+...Thu Jun 10 13:41:57 CEST 2021: - begin running script
+#!/bin/bash -l
+#SBATCH --account=snic2021-5-248
+#SBATCH --partition=core
+#SBATCH --ntasks=10
+#SBATCH --time=2-04:00:00
+#SBATCH --job-name=Meteor
+#SBATCH --mail-user=zn.tportlock@gmail.com
+#SBATCH --mail-type=ALL
+##SBATCH --output=/proj/uppstore2019028/projects/metagenome/theo/newscripts/meteor/logs/%j 
+
+function Run {
+	start=$(date +%m)
+	echo "...$(date): $1 - begin"; echo ""
+	$@ \
+	&& (echo "...$(date): $1 - done"; echo "") \
+	|| (echo "...$(date): $1 - failed"; echo "")
+	end=$(date +%s)
+	echo "...time taken: $((end-start))"; echo ""
+}
+function Parse_variables {
+	v_project_dir="$TMPDIR"
+	v_workdir="${v_project_dir}/working"
+	v_refdir="${v_project_dir}/reference"
+	v_fastqgz1="$(readlink -f ${fastqgzs[0]})"
+	v_fastqgz2="$(readlink -f ${fastqgzs[1]})"
+	v_fastqgz1_unzip="${v_workdir}/$(basename $v_fastqgz1 .gz).unzipped"
+	v_fastqgz2_unzip="${v_workdir}/$(basename $v_fastqgz2 .gz).unzipped"
+	v_trimmedS="${v_workdir}/${sampleId}.trimmed.s.fastq"
+	v_final1="${v_workdir}/${sampleId}_1.fastq"
+	v_final2="${v_workdir}/${sampleId}_2.fastq"
+	v_sampledir="${v_project_dir}/${catalog_type}/sample/${sampleId}"
+	v_downstream_dir="$v_project_dir/Downstream"
+	vars="$(compgen -A variable | grep "^v_.*")"
+	for var in ${vars}; do echo "${var}=${!var}"; done
+	for var in ${vars}; do if [[ -z "${!var}" ]]; then echo "missing argument ${var}" ; return 1 ; fi ; done
+}
+function Init {
+	mkdir -p ${v_project_dir}/${catalog_type}/{sample,mapping,profiles}
+	mkdir -p ${v_workdir}
+	mkdir -p ${v_refdir}
+}
+function Send {
+	cp $v_fastqgz1 $v_workdir
+	cp $v_fastqgz2 $v_workdir
+	cp -r ${reference_dir}/* $v_refdir
+	cp -r $trimFasta $v_project_dir
+}
+function Decompress {
+	zcat ${v_workdir}/$(basename $v_fastqgz1) > $v_fastqgz1_unzip & pid1=$!
+	zcat ${v_workdir}/$(basename $v_fastqgz2) > $v_fastqgz2_unzip & pid2=$!
+	trap "kill -2 $pid1 $pid2" SIGINT
+	wait
+}
+function Trim {
+	[[ -f $v_fastqgz1_unzip && -f $v_fastqgz2_unzip ]] \
+	|| (echo "zip file not found" ; return 1 )
+	java -jar ${ALIEN_TRIMMER}/AlienTrimmer.jar \
+		-k 10 -l 45 -m 5 -p 40 -q 20 \
+		-if ${v_fastqgz1_unzip} -ir ${v_fastqgz2_unzip} -c $TMPDIR/$(basename $trimFasta) \
+		-of ${v_final1} -or ${v_final2} -os ${v_trimmedS} \
+	|| return 1
+}
+function Import {
+	[[ -f $v_final1 && -f $v_final2 ]] \
+	|| (echo "trimmed files not found" ; return 1 )
+	mv ${v_final1} ${v_final2} ${v_project_dir}/${catalog_type}/sample &&
+	rm -r ${v_workdir}
+	ruby ${meteorImportScript} \
+		-i ${v_project_dir}/${catalog_type}/sample \
+		-p ${catalog_type} \
+		-t ${seq_platform} \
+		-m "${sampleId}*" \
+	|| return 1
+}
+function Map_reads {
+	ruby ${meteor}/meteor.rb \
+		-w ${ini_file} \
+		-i ${v_sampledir} \
+		-p ${v_project_dir}/${catalog_type} \
+		-o mapping \
+	|| return 1
+}
+function Quantify {
+	${meteor}/meteor-profiler \
+		-p ${v_project_dir}/${catalog_type} \
+		-f ${v_project_dir}/${catalog_type}/profiles \
+		-t smart_shared_reads \
+		-w ${ini_file} \
+		-o ${sampleId} ${v_project_dir}/${catalog_type}/mapping/${sampleId}/${sampleId}_${v_prefix}_gene_profile/census.dat \
+	&& rm -r ${v_project_dir}/${catalog_type}/mapping/${sampleId} \
+	|| return 1
+}
+function Recover {
+	rsync -aurvP --remove-source-files $v_project_dir/ $project_dir_rel
+}
+
+Main() {
+	sampleId=$(basename $1 .fastq.gz)
+	fastqgzs+=("$2")
+	fastqgzs+=("$3")
+
+	Run Parse_variables &&
+	Run Init &&
+	Run Send &&
+	Run Decompress &&
+	Run Trim &&
+	Run Import &&
+	Run Map_reads &&
+	Run Quantify &&
+	Run Recover
+}
+
+echo "...$(date): - begin running script"
+cat $0
+echo ""
+
+# Load modules
+echo "...$(date): - load modules"
+module load bioinfo-tools
+module load ruby/2.6.2
+module load AlienTrimmer/0.4.0
+module load bowtie2/2.3.4.1
+echo "...$(date): - done"; echo "" 
+
+# Load ini file
+echo "...$(date): - load ini file"
+sed -i "s|meteor.reference.dir=.*|meteor.reference.dir=$TMPDIR/reference|g" $1
+ini_file=$1
+source $ini_file > /dev/null 2>&1
+v_prefix=$( grep "meteor.counting.prefix.name" $ini_file | sed "s/^.*=//g" )
+cat $ini_file
+echo "...$(date): - done"; echo "" 
+
+# Run meteor
+Main $sample $seq_data_dir/${sample}${forward_identifier} $seq_data_dir/${sample}${reverse_identifier}
+
+...Thu Jun 10 13:41:57 CEST 2021: - load modules
+Bowtie2 looks for the specified index first in the current directory, then in the directory specified in the BOWTIE2_INDEXES environment variable.
+The pregenerated indexes for the reference genonomes are placed under /sw/data/reference/*/*/program_files/bowtie2 for each reference genome
+...Thu Jun 10 13:42:08 CEST 2021: - done
+
+...Thu Jun 10 13:42:08 CEST 2021: - load ini file
+[Pipeline]
+sample=P18161_241/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_241_S112_L004
+forward_identifier="_R1_001.fastq.gz"
+reverse_identifier="_R2_001.fastq.gz"
+seq_data_dir="/proj/snic2020-6-153/delivery04021/P18161"
+project_dir_rel="/proj/uppstore2019028/projects/metagenome/theo/newscripts/tmp"
+catalog_type="oral_catalog"
+seq_platform="illumina"
+trimFasta="/proj/uppstore2019028/projects/metagenome/alienTrimmerPF8contaminants.fasta"
+meteorImportScript="/proj/uppstore2019028/meteor.2019.11.04/MeteorImportFastq.rb"
+meteor="/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04"
+Rdir="/proj/uppstore2019028/projects/metagenome/meteor_downstream_rscripts"
+reference_dir="/proj/uppstore2019028/projects/metagenome/meteor_ref"
+[worksession]
+meteor.reference.dir=/scratch/20410274/reference
+meteor.db.type=binary
+meteor.nb.attempts=3
+meteor.read.cleaning.program=none
+meteor.read.cleaning.cmd=
+meteor.mapping.program=bowtie2
+meteor.mapping.file.format=sam
+meteor.is.cpu.percentage=0
+meteor.cpu.count=10
+meteor.checksum=md5
+meteor.excluded.reference.count=3
+[main_reference]
+meteor.reference.name=oral_catalog
+meteor.matches=10000
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapper.cmd=
+meteor.mapping.prefix.name=mapping_vs_oral_catalog
+meteor.counting.prefix.name=vs_hs_10_4_oral_catalog
+[excluded_reference_1]
+meteor.reference.name=Homo_sapiens_GRCh38
+meteor.matches=1
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapping.prefix.name=mapping_vs_Homo_sapiens_GRCh38
+[excluded_reference_2]
+meteor.reference.name=A_thaliana_TAIR10
+meteor.matches=1
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapping.prefix.name=mapping_vs_A_thaliana_TAIR10
+[excluded_reference_3]
+meteor.reference.name=Bos_taurus_UMD3
+meteor.matches=1
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapping.prefix.name=mapping_vs_Bos_taurus_UMD3
+...Thu Jun 10 13:42:08 CEST 2021: - done
+
+...Thu Jun 10 13:42:08 CEST 2021: Parse_variables - begin
+
+v_downstream_dir=/scratch/20410274/Downstream
+v_fastqgz1=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_241/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_241_S112_L004_R1_001.fastq.gz
+v_fastqgz1_unzip=/scratch/20410274/working/P18161_241_S112_L004_R1_001.fastq.unzipped
+v_fastqgz2=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_241/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_241_S112_L004_R2_001.fastq.gz
+v_fastqgz2_unzip=/scratch/20410274/working/P18161_241_S112_L004_R2_001.fastq.unzipped
+v_final1=/scratch/20410274/working/P18161_241_S112_L004_1.fastq
+v_final2=/scratch/20410274/working/P18161_241_S112_L004_2.fastq
+v_prefix=vs_hs_10_4_oral_catalog
+v_project_dir=/scratch/20410274
+v_refdir=/scratch/20410274/reference
+v_sampledir=/scratch/20410274/oral_catalog/sample/P18161_241_S112_L004
+v_trimmedS=/scratch/20410274/working/P18161_241_S112_L004.trimmed.s.fastq
+v_workdir=/scratch/20410274/working
+...Thu Jun 10 13:42:08 CEST 2021: Parse_variables - done
+
+...time taken: 1623325322
+
+...Thu Jun 10 13:42:08 CEST 2021: Init - begin
+
+...Thu Jun 10 13:42:08 CEST 2021: Init - done
+
+...time taken: 1623325322
+
+...Thu Jun 10 13:42:08 CEST 2021: Send - begin
+
+...Thu Jun 10 13:54:12 CEST 2021: Send - done
+
+...time taken: 1623326046
+
+...Thu Jun 10 13:54:12 CEST 2021: Decompress - begin
+
+...Thu Jun 10 14:03:46 CEST 2021: Decompress - done
+
+...time taken: 1623326620
+
+...Thu Jun 10 14:03:46 CEST 2021: Trim - begin
+
+AlienTrimmer main options: -k 10 -l 45 -m 5 -q 20 -p 40 (Phred+33)  /  439 fwd alien sequence(s)  /  7856 fwd k-mers (k=10)  /  439 rev alien sequence(s)  /  7856 rev k-mers (k=10)
+[02:30]   1,000,000 read pairs processed:     661,973 trimmed (fwd:     303,389  rev:     358,584)      18,431 removed (fwd:       5,219  rev:      13,212)
+[04:33]   2,000,000 read pairs processed:   1,321,909 trimmed (fwd:     600,173  rev:     721,736)      37,781 removed (fwd:      10,091  rev:      27,690)
+[06:36]   3,000,000 read pairs processed:   1,996,781 trimmed (fwd:     896,437  rev:   1,100,344)      58,107 removed (fwd:      14,542  rev:      43,565)
+[08:42]   4,000,000 read pairs processed:   2,660,577 trimmed (fwd:   1,191,896  rev:   1,468,681)      79,113 removed (fwd:      19,106  rev:      60,007)
+[10:44]   5,000,000 read pairs processed:   3,313,868 trimmed (fwd:   1,488,103  rev:   1,825,765)      96,260 removed (fwd:      23,795  rev:      72,465)
+[12:47]   6,000,000 read pairs processed:   3,972,185 trimmed (fwd:   1,781,930  rev:   2,190,255)     114,209 removed (fwd:      28,340  rev:      85,869)
+[14:53]   7,000,000 read pairs processed:   4,641,924 trimmed (fwd:   2,074,046  rev:   2,567,878)     135,054 removed (fwd:      32,585  rev:     102,469)
+[16:57]   8,000,000 read pairs processed:   5,300,675 trimmed (fwd:   2,371,791  rev:   2,928,884)     153,391 removed (fwd:      37,244  rev:     116,147)
+[19:01]   9,000,000 read pairs processed:   5,951,463 trimmed (fwd:   2,663,798  rev:   3,287,665)     171,757 removed (fwd:      41,676  rev:     130,081)
+[21:05]  10,000,000 read pairs processed:   6,613,769 trimmed (fwd:   2,956,027  rev:   3,657,742)     191,064 removed (fwd:      46,128  rev:     144,936)
+[23:09]  11,000,000 read pairs processed:   7,281,424 trimmed (fwd:   3,247,954  rev:   4,033,470)     211,786 removed (fwd:      50,469  rev:     161,317)
+[25:10]  12,000,000 read pairs processed:   7,919,569 trimmed (fwd:   3,535,538  rev:   4,384,031)     228,548 removed (fwd:      54,970  rev:     173,578)
+[27:13]  13,000,000 read pairs processed:   8,567,056 trimmed (fwd:   3,823,212  rev:   4,743,844)     246,513 removed (fwd:      59,468  rev:     187,045)
+[29:17]  14,000,000 read pairs processed:   9,223,246 trimmed (fwd:   4,113,291  rev:   5,109,955)     265,105 removed (fwd:      63,627  rev:     201,478)
+[31:21]  15,000,000 read pairs processed:   9,886,114 trimmed (fwd:   4,406,543  rev:   5,479,571)     283,360 removed (fwd:      67,858  rev:     215,502)
+[33:25]  16,000,000 read pairs processed:  10,532,108 trimmed (fwd:   4,693,057  rev:   5,839,051)     300,208 removed (fwd:      72,154  rev:     228,054)
+[35:31]  17,000,000 read pairs processed:  11,190,073 trimmed (fwd:   4,982,274  rev:   6,207,799)     317,844 removed (fwd:      76,572  rev:     241,272)
+[37:35]  18,000,000 read pairs processed:  11,851,213 trimmed (fwd:   5,271,796  rev:   6,579,417)     335,931 removed (fwd:      80,682  rev:     255,249)
+[39:37]  19,000,000 read pairs processed:  12,498,085 trimmed (fwd:   5,566,513  rev:   6,931,572)     353,548 removed (fwd:      85,393  rev:     268,155)
+[41:41]  20,000,000 read pairs processed:  13,142,672 trimmed (fwd:   5,859,062  rev:   7,283,610)     371,093 removed (fwd:      90,180  rev:     280,913)
+[43:45]  21,000,000 read pairs processed:  13,779,216 trimmed (fwd:   6,145,783  rev:   7,633,433)     388,619 removed (fwd:      94,733  rev:     293,886)
+[45:52]  22,000,000 read pairs processed:  14,475,907 trimmed (fwd:   6,455,486  rev:   8,020,421)     406,844 removed (fwd:      98,911  rev:     307,933)
+[47:57]  23,000,000 read pairs processed:  15,283,148 trimmed (fwd:   6,820,928  rev:   8,462,220)     427,723 removed (fwd:     103,506  rev:     324,217)
+[50:00]  24,000,000 read pairs processed:  15,986,066 trimmed (fwd:   7,140,961  rev:   8,845,105)     444,080 removed (fwd:     108,247  rev:     335,833)
+[52:05]  25,000,000 read pairs processed:  16,692,803 trimmed (fwd:   7,457,354  rev:   9,235,449)     461,905 removed (fwd:     112,546  rev:     349,359)
+[54:10]  26,000,000 read pairs processed:  17,471,535 trimmed (fwd:   7,807,014  rev:   9,664,521)     479,500 removed (fwd:     116,964  rev:     362,536)
+[56:14]  27,000,000 read pairs processed:  18,180,015 trimmed (fwd:   8,123,097  rev:  10,056,918)     495,631 removed (fwd:     121,686  rev:     373,945)
+[58:18]  28,000,000 read pairs processed:  18,869,854 trimmed (fwd:   8,425,796  rev:  10,444,058)     513,368 removed (fwd:     125,949  rev:     387,419)
+[60:21]  29,000,000 read pairs processed:  19,585,903 trimmed (fwd:   8,754,514  rev:  10,831,389)     529,147 removed (fwd:     130,539  rev:     398,608)
+[62:25]  30,000,000 read pairs processed:  20,286,979 trimmed (fwd:   9,070,996  rev:  11,215,983)     545,008 removed (fwd:     135,062  rev:     409,946)
+[64:30]  31,000,000 read pairs processed:  20,967,139 trimmed (fwd:   9,373,936  rev:  11,593,203)     561,079 removed (fwd:     139,365  rev:     421,714)
+[66:50]  32,000,000 read pairs processed:  21,657,552 trimmed (fwd:   9,683,224  rev:  11,974,328)     576,748 removed (fwd:     143,730  rev:     433,018)
+[69:27]  33,000,000 read pairs processed:  22,340,108 trimmed (fwd:   9,989,148  rev:  12,350,960)     591,984 removed (fwd:     148,190  rev:     443,794)
+[71:58]  34,000,000 read pairs processed:  23,021,333 trimmed (fwd:  10,291,525  rev:  12,729,808)     606,910 removed (fwd:     152,328  rev:     454,582)
+[74:14]  35,000,000 read pairs processed:  23,705,929 trimmed (fwd:  10,596,488  rev:  13,109,441)     622,737 removed (fwd:     156,470  rev:     466,267)
+[76:46]  36,000,000 read pairs processed:  24,399,354 trimmed (fwd:  10,911,007  rev:  13,488,347)     638,094 removed (fwd:     160,900  rev:     477,194)
+[78:44]  37,000,000 read pairs processed:  25,085,616 trimmed (fwd:  11,220,156  rev:  13,865,460)     653,575 removed (fwd:     165,297  rev:     488,278)
+[80:44]  38,000,000 read pairs processed:  25,772,553 trimmed (fwd:  11,525,596  rev:  14,246,957)     669,947 removed (fwd:     169,325  rev:     500,622)
+[84:59]  39,000,000 read pairs processed:  26,510,360 trimmed (fwd:  11,860,191  rev:  14,650,169)     687,220 removed (fwd:     174,307  rev:     512,913)
+[88:13]  40,000,000 read pairs processed:  27,215,180 trimmed (fwd:  12,176,954  rev:  15,038,226)     703,496 removed (fwd:     179,193  rev:     524,303)
+[91:51]  41,000,000 read pairs processed:  27,894,346 trimmed (fwd:  12,478,226  rev:  15,416,120)     718,616 removed (fwd:     183,301  rev:     535,315)
+[92:22]  41,117,882 read pairs processed:  27,974,066 trimmed (fwd:  12,513,132  rev:  15,460,934)     720,421 removed (fwd:     183,757  rev:     536,664)
+...Thu Jun 10 15:36:09 CEST 2021: Trim - done
+
+...time taken: 1623332163
+
+...Thu Jun 10 15:36:09 CEST 2021: Import - begin
+
+ruby: warning: shebang line ending with \r may cause problems
+Import /scratch/20410274/oral_catalog/sample/P18161_241_S112_L004_2.fastq
+Import /scratch/20410274/oral_catalog/sample/P18161_241_S112_L004_1.fastq
+Importation done!
+...Thu Jun 10 15:36:21 CEST 2021: Import - done
+
+...time taken: 1623332175
+
+...Thu Jun 10 15:36:21 CEST 2021: Map_reads - begin
+
+/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:146: warning: constant ::Fixnum is deprecated
+/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:161: warning: Insecure world writable dir /proj/uppstore2019028/Helen/meteor-linux.2019-11-04 in PATH, mode 042777
+
+Launch mapping
+
+
+######### Meteor Mapping task description
+Sample name = P18161_241_S112_L004
+Library name = P18161_241_S112_L004_1
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = P18161_241_S112_L004.ini
+
+######### Task main mapping 0
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20410274/reference/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/20410274/oral_catalog/sample/P18161_241_S112_L004/fa5f8f7ff128c23564f6f7826ee58587/P18161_241_S112_L004_1.fastq.idx -S /scratch/20410274/oral_catalog/mapping/P18161_241_S112_L004/mapping_vs_oral_catalog_P18161_241_S112_L004_1/P18161_241_S112_L004_1_1.sam
+40433517 reads; of these:
+  40433517 (100.00%) were unpaired; of these:
+    33785720 (83.56%) aligned 0 times
+    1750165 (4.33%) aligned exactly 1 time
+    4897632 (12.11%) aligned >1 times
+16.44% overall alignment rate
+
+######### TaskExcludedMapping(0, 1) ; reference name: Homo_sapiens_GRCh38
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20410274/reference/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /scratch/20410274/oral_catalog/sample/P18161_241_S112_L004/fa5f8f7ff128c23564f6f7826ee58587/P18161_241_S112_L004_1.fastq.idx -S /scratch/20410274/oral_catalog/mapping/P18161_241_S112_L004/mapping_vs_Homo_sapiens_GRCh38_P18161_241_S112_L004_1/P18161_241_S112_L004_1_1.sam
+40433517 reads; of these:
+  40433517 (100.00%) were unpaired; of these:
+    4132922 (10.22%) aligned 0 times
+    36300595 (89.78%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+89.78% overall alignment rate
+
+######### TaskExcludedMapping(0, 2) ; reference name: A_thaliana_TAIR10
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20410274/reference/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /scratch/20410274/oral_catalog/sample/P18161_241_S112_L004/fa5f8f7ff128c23564f6f7826ee58587/P18161_241_S112_L004_1.fastq.idx -S /scratch/20410274/oral_catalog/mapping/P18161_241_S112_L004/mapping_vs_A_thaliana_TAIR10_P18161_241_S112_L004_1/P18161_241_S112_L004_1_1.sam
+40433517 reads; of these:
+  40433517 (100.00%) were unpaired; of these:
+    40422462 (99.97%) aligned 0 times
+    11055 (0.03%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.03% overall alignment rate
+
+######### TaskExcludedMapping(0, 3) ; reference name: Bos_taurus_UMD3
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20410274/reference/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /scratch/20410274/oral_catalog/sample/P18161_241_S112_L004/fa5f8f7ff128c23564f6f7826ee58587/P18161_241_S112_L004_1.fastq.idx -S /scratch/20410274/oral_catalog/mapping/P18161_241_S112_L004/mapping_vs_Bos_taurus_UMD3_P18161_241_S112_L004_1/P18161_241_S112_L004_1_1.sam
+40433517 reads; of these:
+  40433517 (100.00%) were unpaired; of these:
+    39793243 (98.42%) aligned 0 times
+    640274 (1.58%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+1.58% overall alignment rate
+removing re-indexed file:
+/scratch/20410274/oral_catalog/sample/P18161_241_S112_L004/fa5f8f7ff128c23564f6f7826ee58587/P18161_241_S112_L004_1.fastq.idx
+
+
+######### Meteor Mapping task description
+Sample name = P18161_241_S112_L004
+Library name = P18161_241_S112_L004_2
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = P18161_241_S112_L004.ini
+
+######### Task main mapping 1
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /scratch/20410274/reference/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/20410274/oral_catalog/sample/P18161_241_S112_L004/fa5f8f7ff128c23564f6f7826ee58587/P18161_241_S112_L004_2.fastq.idx -S /scratch/20410274/oral_catalog/mapping/P18161_241_S112_L004/mapping_vs_oral_catalog_P18161_241_S112_L004_2/P18161_241_S112_L004_2_1.sam

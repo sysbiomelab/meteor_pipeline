@@ -3,19 +3,14 @@
 #SBATCH --partition=core
 #SBATCH --ntasks=10
 #SBATCH --time=2-06:00:00
-#SBATCH --job-name=FmtLast
+#SBATCH --job-name=METEOR
 ##SBATCH --output=%j 
-##SBATCH --mail-user=zn.tportlock@gmail.com
-##SBATCH --mail-type=ALL
 
 function Run {
-	#start=$(date +%M)
-	#echo "...$(date): $1 - begin"; echo ""
+	echo "...$(date): $1 - begin"; echo ""
 	$@ \
 	&& (echo "...$(date): $1 - done") \
 	|| (echo "...$(date): $1 - failed"; return 1)
-	#end=$(date +%M)
-	#echo "...time taken: $((end-start))"; echo ""
 }
 function Parse_variables {
 	sampleId=$(basename $sample .fastq.gz)

@@ -1,7 +1,6 @@
 memory.limit(9999999999)
 require(dplyr)  
 require(momr)
-#require(ff)
 
 args = commandArgs(trailingOnly=TRUE)
 gctFile = args[1]
@@ -31,14 +30,14 @@ rm(sampleSum)
 gc()
 print("gct info saved")
 
-#print("downsizing begin")
-#depth = 10000000
-#gctdown10m = momr::downsizeMatrix(gctTab, level=depth, repetitions=1, silent=F)
-#write.csv(gctdown10m, file=gzfile(paste(outDir, "down.csv.gz", sep='/')))
-#rm(gctTab)
-#gc()
-#print("downsizing finished")
-gctdown10m <- gctTab
+print("downsizing begin")
+depth = 10000000
+gctdown10m = momr::downsizeMatrix(gctTab, level=depth, repetitions=1, silent=F)
+write.csv(gctdown10m, file=gzfile(paste(outDir, "down.csv.gz", sep='/')))
+rm(gctTab)
+gc()
+print("downsizing finished")
+#gctdown10m <- gctTab
 #gctNorm10m <- gctdown10m
 
 print("norm begin")

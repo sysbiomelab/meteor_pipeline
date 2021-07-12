@@ -1,791 +1,0 @@
-Bowtie2 looks for the specified index first in the current directory, then in the directory specified in the BOWTIE2_INDEXES environment variable.
-The pregenerated indexes for the reference genonomes are placed under /sw/data/reference/*/*/program_files/bowtie2 for each reference genome
-[Pipeline]
-samples="\
-P18161_275/02-FASTQ/201120_A00187_0386_BHGTNWDSXY/P18161_275_S71_L001 \
-P18161_237/02-FASTQ/201120_A00187_0386_BHGTNWDSXY/P18161_237_S38_L001 \
-P18161_279/02-FASTQ/201120_A00187_0386_BHGTNWDSXY/P18161_279_S75_L001 \
-"
-forward_identifier="_R1_001.fastq.gz"
-reverse_identifier="_R2_001.fastq.gz"
-seq_data_dir="/proj/snic2020-6-153/delivery04021/P18161"
-project_dir_rel="/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelu"
-catalog_type="oral_catalog"
-seq_platform="illumina"
-trimFasta="/proj/uppstore2019028/projects/metagenome/alienTrimmerPF8contaminants.fasta"
-meteorImportScript="/proj/uppstore2019028/meteor.2019.11.04/MeteorImportFastq.rb"
-reference="/proj/uppstore2019028/projects/metagenome/meteor.reference"
-meteor="/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04"
-Rdir="/proj/uppstore2019028/projects/metagenome/meteor_downstream_rscripts"
-[worksession]
-meteor.reference.dir=/proj/uppstore2019028/Neelu_liver/REFERENCE
-meteor.db.type=binary
-meteor.nb.attempts=3
-meteor.read.cleaning.program=none
-meteor.read.cleaning.cmd=
-meteor.mapping.program=bowtie2
-meteor.mapping.file.format=sam
-meteor.is.cpu.percentage=0
-meteor.cpu.count=10
-meteor.checksum=md5
-meteor.excluded.reference.count=3
-[main_reference]
-meteor.reference.name=oral_catalog
-meteor.matches=10000
-meteor.mismatches=5
-meteor.is.perc.mismatches=1
-meteor.bestalignment=1
-meteor.mapper.cmd=
-meteor.mapping.prefix.name=mapping_vs_oral_catalog
-meteor.counting.prefix.name=vs_hs_10_4_oral_catalog
-[excluded_reference_1]
-meteor.reference.name=Homo_sapiens_GRCh38
-meteor.matches=1
-meteor.mismatches=5
-meteor.is.perc.mismatches=1
-meteor.bestalignment=1
-meteor.mapping.prefix.name=mapping_vs_Homo_sapiens_GRCh38
-[excluded_reference_2]
-meteor.reference.name=A_thaliana_TAIR10
-meteor.matches=1
-meteor.mismatches=5
-meteor.is.perc.mismatches=1
-meteor.bestalignment=1
-meteor.mapping.prefix.name=mapping_vs_A_thaliana_TAIR10
-[excluded_reference_3]
-meteor.reference.name=Bos_taurus_UMD3
-meteor.matches=1
-meteor.mismatches=5
-meteor.is.perc.mismatches=1
-meteor.bestalignment=1
-meteor.mapping.prefix.name=mapping_vs_Bos_taurus_UMD3
-...Mon Apr 26 19:23:48 CEST 2021: Parse_variables - begin
-v_downstream_dir=/scratch/19619726/P18161_279_S75_L001/Downstream
-v_fastqgz1=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_279/02-FASTQ/201120_A00187_0386_BHGTNWDSXY/P18161_279_S75_L001_R1_001.fastq.gz
-v_fastqgz1_unzip=/scratch/19619726/P18161_279_S75_L001/working/P18161_279_S75_L001_R1_001.fastq.unzipped
-v_fastqgz2=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_279/02-FASTQ/201120_A00187_0386_BHGTNWDSXY/P18161_279_S75_L001_R2_001.fastq.gz
-v_fastqgz2_unzip=/scratch/19619726/P18161_279_S75_L001/working/P18161_279_S75_L001_R2_001.fastq.unzipped
-v_final1=/scratch/19619726/P18161_279_S75_L001/working/P18161_279_S75_L001_1.fastq
-v_final2=/scratch/19619726/P18161_279_S75_L001/working/P18161_279_S75_L001_2.fastq
-v_prefix=vs_hs_10_4_oral_catalog
-v_project_dir=/scratch/19619726/P18161_279_S75_L001
-v_sampledir=/scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001
-v_trimmedS=/scratch/19619726/P18161_279_S75_L001/working/P18161_279_S75_L001.trimmed.s.fastq
-v_workdir=/scratch/19619726/P18161_279_S75_L001/working
-...Mon Apr 26 19:23:48 CEST 2021: Parse_variables - done
-
-...Mon Apr 26 19:23:48 CEST 2021: Init - begin
-...Mon Apr 26 19:23:48 CEST 2021: Init - done
-
-...Mon Apr 26 19:23:48 CEST 2021: Decompress - begin
-...Mon Apr 26 19:25:52 CEST 2021: Decompress - done
-
-...Mon Apr 26 19:25:52 CEST 2021: Trim - begin
-AlienTrimmer main options: -k 10 -l 45 -m 5 -q 20 -p 40 (Phred+33)  /  439 fwd alien sequence(s)  /  7856 fwd k-mers (k=10)  /  439 rev alien sequence(s)  /  7856 rev k-mers (k=10)
-[02:01]   1,000,000 read pairs processed:     721,032 trimmed (fwd:     349,227  rev:     371,805)      13,443 removed (fwd:       5,190  rev:       8,253)
-[04:01]   2,000,000 read pairs processed:   1,437,847 trimmed (fwd:     694,583  rev:     743,264)      26,614 removed (fwd:      10,311  rev:      16,303)
-[05:59]   3,000,000 read pairs processed:   2,158,519 trimmed (fwd:   1,041,206  rev:   1,117,313)      39,548 removed (fwd:      15,314  rev:      24,234)
-[07:57]   4,000,000 read pairs processed:   2,883,723 trimmed (fwd:   1,389,570  rev:   1,494,153)      52,385 removed (fwd:      20,317  rev:      32,068)
-[09:55]   5,000,000 read pairs processed:   3,603,756 trimmed (fwd:   1,735,957  rev:   1,867,799)      65,265 removed (fwd:      25,275  rev:      39,990)
-[11:52]   6,000,000 read pairs processed:   4,319,914 trimmed (fwd:   2,080,691  rev:   2,239,223)      77,866 removed (fwd:      30,234  rev:      47,632)
-[13:51]   7,000,000 read pairs processed:   5,039,423 trimmed (fwd:   2,426,729  rev:   2,612,694)      90,758 removed (fwd:      35,291  rev:      55,467)
-[15:50]   8,000,000 read pairs processed:   5,757,201 trimmed (fwd:   2,770,212  rev:   2,986,989)     103,648 removed (fwd:      40,177  rev:      63,471)
-[17:48]   9,000,000 read pairs processed:   6,474,824 trimmed (fwd:   3,117,069  rev:   3,357,755)     117,181 removed (fwd:      45,527  rev:      71,654)
-[21:03]  10,000,000 read pairs processed:   7,247,399 trimmed (fwd:   3,484,073  rev:   3,763,326)     132,487 removed (fwd:      50,934  rev:      81,553)
-[23:02]  11,000,000 read pairs processed:   8,052,888 trimmed (fwd:   3,865,759  rev:   4,187,129)     148,531 removed (fwd:      56,357  rev:      92,174)
-[25:02]  12,000,000 read pairs processed:   8,846,850 trimmed (fwd:   4,241,538  rev:   4,605,312)     162,947 removed (fwd:      61,601  rev:     101,346)
-[27:01]  13,000,000 read pairs processed:   9,618,461 trimmed (fwd:   4,610,081  rev:   5,008,380)     177,228 removed (fwd:      66,760  rev:     110,468)
-[28:58]  14,000,000 read pairs processed:  10,376,396 trimmed (fwd:   4,966,687  rev:   5,409,709)     191,034 removed (fwd:      71,814  rev:     119,220)
-[30:58]  15,000,000 read pairs processed:  11,136,872 trimmed (fwd:   5,326,115  rev:   5,810,757)     205,097 removed (fwd:      77,036  rev:     128,061)
-[32:56]  16,000,000 read pairs processed:  11,893,020 trimmed (fwd:   5,683,390  rev:   6,209,630)     219,010 removed (fwd:      82,104  rev:     136,906)
-[34:54]  17,000,000 read pairs processed:  12,655,221 trimmed (fwd:   6,048,277  rev:   6,606,944)     232,856 removed (fwd:      87,298  rev:     145,558)
-[36:52]  18,000,000 read pairs processed:  13,435,033 trimmed (fwd:   6,418,788  rev:   7,016,245)     247,040 removed (fwd:      92,459  rev:     154,581)
-[38:51]  19,000,000 read pairs processed:  14,210,933 trimmed (fwd:   6,788,328  rev:   7,422,605)     261,671 removed (fwd:      97,783  rev:     163,888)
-[39:15]  19,202,994 read pairs processed:  14,373,419 trimmed (fwd:   6,864,085  rev:   7,509,334)     264,662 removed (fwd:      98,837  rev:     165,825)
-...Mon Apr 26 20:07:41 CEST 2021: Trim - done
-
-...Mon Apr 26 20:07:41 CEST 2021: Import - begin
-Import /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001_2.fastq
-Import /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001_1.fastq
-Importation done!
-...Mon Apr 26 20:07:44 CEST 2021: Import - done
-
-...Mon Apr 26 20:07:44 CEST 2021: Map_reads - begin
-
-Launch mapping
-
-
-######### Meteor Mapping task description
-Sample name = P18161_279_S75_L001
-Library name = P18161_279_S75_L001_1
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-
-######### Task main mapping 0
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_1.fastq.idx -S /scratch/19619726/P18161_279_S75_L001/oral_catalog/mapping/P18161_279_S75_L001/mapping_vs_oral_catalog_P18161_279_S75_L001_1/P18161_279_S75_L001_1_1.sam
-
-######### TaskExcludedMapping(0, 1) ; reference name: Homo_sapiens_GRCh38
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_1.fastq.idx -S /scratch/19619726/P18161_279_S75_L001/oral_catalog/mapping/P18161_279_S75_L001/mapping_vs_Homo_sapiens_GRCh38_P18161_279_S75_L001_1/P18161_279_S75_L001_1_1.sam
-
-######### TaskExcludedMapping(0, 2) ; reference name: A_thaliana_TAIR10
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_1.fastq.idx -S /scratch/19619726/P18161_279_S75_L001/oral_catalog/mapping/P18161_279_S75_L001/mapping_vs_A_thaliana_TAIR10_P18161_279_S75_L001_1/P18161_279_S75_L001_1_1.sam
-
-######### TaskExcludedMapping(0, 3) ; reference name: Bos_taurus_UMD3
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_1.fastq.idx -S /scratch/19619726/P18161_279_S75_L001/oral_catalog/mapping/P18161_279_S75_L001/mapping_vs_Bos_taurus_UMD3_P18161_279_S75_L001_1/P18161_279_S75_L001_1_1.sam
-removing re-indexed file:
-/scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_1.fastq.idx
-
-
-######### Meteor Mapping task description
-Sample name = P18161_279_S75_L001
-Library name = P18161_279_S75_L001_2
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-
-######### Task main mapping 1
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_2.fastq.idx -S /scratch/19619726/P18161_279_S75_L001/oral_catalog/mapping/P18161_279_S75_L001/mapping_vs_oral_catalog_P18161_279_S75_L001_2/P18161_279_S75_L001_2_1.sam
-
-######### TaskExcludedMapping(1, 1) ; reference name: Homo_sapiens_GRCh38
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_2.fastq.idx -S /scratch/19619726/P18161_279_S75_L001/oral_catalog/mapping/P18161_279_S75_L001/mapping_vs_Homo_sapiens_GRCh38_P18161_279_S75_L001_2/P18161_279_S75_L001_2_1.sam
-
-######### TaskExcludedMapping(1, 2) ; reference name: A_thaliana_TAIR10
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_2.fastq.idx -S /scratch/19619726/P18161_279_S75_L001/oral_catalog/mapping/P18161_279_S75_L001/mapping_vs_A_thaliana_TAIR10_P18161_279_S75_L001_2/P18161_279_S75_L001_2_1.sam
-
-######### TaskExcludedMapping(1, 3) ; reference name: Bos_taurus_UMD3
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_2.fastq.idx -S /scratch/19619726/P18161_279_S75_L001/oral_catalog/mapping/P18161_279_S75_L001/mapping_vs_Bos_taurus_UMD3_P18161_279_S75_L001_2/P18161_279_S75_L001_2_1.sam
-removing re-indexed file:
-/scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001/27d7fc8a403065cb6240055ee08cc6a7/P18161_279_S75_L001_2.fastq.idx
-
-Launch counting
-
-Executing counting command:
-meteor-counter -w xaq.ini -i /scratch/19619726/P18161_279_S75_L001/oral_catalog/sample/P18161_279_S75_L001 -p /scratch/19619726/P18161_279_S75_L001/oral_catalog -o mapping
-######### workspace preparation
-######### Meteor task description
-Sample name = P18161_279_S75_L001
-Library name = P18161_279_S75_L001_2
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-######### Meteor task description
-Sample name = P18161_279_S75_L001
-Library name = P18161_279_S75_L001_1
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-######### Task main counting
-
-Job finished !
-Done !
-Job finished without errors ...
-...Tue Apr 27 08:32:46 CEST 2021: Map_reads - done
-
-...Tue Apr 27 08:32:46 CEST 2021: Quantify - begin
-SampleCount: 1
-RunSampleCount: 2
-
-######### profiling job started
-
-1000000 processed records.
-2000000 processed records.
-3000000 processed records.
-4000000 processed records.
-5000000 processed records.
-6000000 processed records.
-7000000 processed records.
-8000000 processed records.
-8403558 processed records.
-
-Merged profiled data are saved here: /scratch/19619726/P18161_279_S75_L001/oral_catalog/profiles/P18161_279_S75_L001.tsv
-
-Counting report is saved here: /scratch/19619726/P18161_279_S75_L001/oral_catalog/profiles/P18161_279_S75_L001_counting_report.csv
-
-Extended counting report is saved here: /scratch/19619726/P18161_279_S75_L001/oral_catalog/profiles/P18161_279_S75_L001_extended_counting_report.csv
-
-######### Job finished
-...Tue Apr 27 08:33:13 CEST 2021: Quantify - done
-
-...Tue Apr 27 08:33:13 CEST 2021: Recover - begin
-sending incremental file list
-./
-oral_catalog/
-oral_catalog/mapping/
-oral_catalog/profiles/
-oral_catalog/profiles/P18161_279_S75_L001.tsv
-         32,768   0%    0.00kB/s    0:00:00       85,496,173 100%  146.33MB/s    0:00:00 (xfr#1, to-chk=8/14)
-oral_catalog/profiles/P18161_279_S75_L001_counting_report.csv
-            500 100%    0.88kB/s    0:00:00              500 100%    0.88kB/s    0:00:00 (xfr#2, to-chk=7/14)
-oral_catalog/profiles/P18161_279_S75_L001_extended_counting_report.csv
-            749 100%    1.31kB/s    0:00:00              749 100%    1.31kB/s    0:00:00 (xfr#3, to-chk=6/14)
-oral_catalog/profiles/P18161_279_S75_L001_gene_profile.ini
-          3,060 100%    5.36kB/s    0:00:00            3,060 100%    5.36kB/s    0:00:00 (xfr#4, to-chk=5/14)
-oral_catalog/sample/
-oral_catalog/sample/P18161_279_S75_L001/
-oral_catalog/sample/P18161_279_S75_L001/P18161_279_S75_L001_1.fastq
-         32,768   0%   55.46kB/s   33:37:20       55,148,544   0%   52.59MB/s    0:02:03      191,266,816   2%   91.25MB/s    0:01:09      315,392,000   4%  100.33MB/s    0:01:02      450,625,536   6%  107.52MB/s    0:00:56      569,442,304   8%  122.71MB/s    0:00:48      621,838,336   9%  102.71MB/s    0:00:57      734,920,704  10%  100.07MB/s    0:00:58      860,651,520  12%   97.81MB/s    0:00:58      996,442,112  14%  101.86MB/s    0:00:54    1,130,135,552  16%  121.28MB/s    0:00:44    1,237,843,968  18%  120.00MB/s    0:00:44    1,355,120,640  20%  117.98MB/s    0:00:44    1,483,538,432  22%  116.22MB/s    0:00:43    1,617,068,032  24%  116.18MB/s    0:00:42    1,752,334,336  26%  122.76MB/s    0:00:39    1,883,275,264  28%  126.02MB/s    0:00:37    2,015,985,664  30%  127.04MB/s    0:00:36    2,148,040,704  31%  126.69MB/s    0:00:35    2,295,955,456  34%  129.67MB/s    0:00:33    2,429,321,216  36%  130.29MB/s    0:00:32    2,563,211,264  38%  130.57MB/s    0:00:31    2,676,490,240  39%  125.74MB/s    0:00:31    2,789,113,856  41%  117.34MB/s    0:00:32    2,929,754,112  43%  119.07MB/s    0:00:31    3,067,510,784  45%  119.99MB/s    0:00:29    3,134,750,720  46%  109.29MB/s    0:00:31    3,270,803,456  48%  114.87MB/s    0:00:29    3,397,484,544  50%  111.54MB/s    0:00:29    3,531,079,680  52%  110.55MB/s    0:00:28    3,668,738,048  54%  127.41MB/s    0:00:23    3,754,196,992  55%  115.02MB/s    0:00:25    3,816,751,104  56%   99.76MB/s    0:00:28    3,935,993,856  58%   96.35MB/s    0:00:28    4,061,462,528  60%   93.45MB/s    0:00:27    4,192,829,440  62%  104.66MB/s    0:00:23    4,315,774,976  64%  118.95MB/s    0:00:19    4,430,561,280  66%  117.88MB/s    0:00:18    4,539,056,128  67%  113.81MB/s    0:00:18    4,641,062,912  69%  106.84MB/s    0:00:18    4,764,499,968  70%  107.04MB/s    0:00:17    4,891,967,488  72%  110.06MB/s    0:00:16    5,010,194,432  74%  112.38MB/s    0:00:14    5,121,867,776  76%  114.69MB/s    0:00:13    5,251,596,288  78%  116.22MB/s    0:00:12    5,387,878,400  80%  118.20MB/s    0:00:10    5,472,452,608  81%  110.18MB/s    0:00:10    5,580,947,456  83%  109.43MB/s    0:00:10    5,710,577,664  85%  109.40MB/s    0:00:08    5,860,720,640  87%  112.82MB/s    0:00:07    6,025,052,160  89%  131.85MB/s    0:00:05    6,279,495,680  93%  166.67MB/s    0:00:02    6,428,655,616  95%  171.33MB/s    0:00:01    6,583,615,488  98%  172.48MB/s    0:00:00    6,712,847,814 100%  119.19MB/s    0:00:53 (xfr#5, to-chk=3/14)
-oral_catalog/sample/P18161_279_S75_L001/P18161_279_S75_L001_1_census_stage_0.ini
-            273 100%    0.37kB/s    0:00:00              273 100%    0.37kB/s    0:00:00 (xfr#6, to-chk=2/14)
-oral_catalog/sample/P18161_279_S75_L001/P18161_279_S75_L001_2.fastq
-         32,768   0%   43.24kB/s   43:09:53       46,891,008   0%   44.72MB/s    0:02:25      149,782,528   2%   71.46MB/s    0:01:29      277,610,496   4%   88.31MB/s    0:01:11      401,113,088   5%   95.70MB/s    0:01:04      527,630,336   7%  114.70MB/s    0:00:52      659,390,464   9%  121.59MB/s    0:00:48      794,001,408  11%  123.21MB/s    0:00:46      893,157,376  13%  116.99MB/s    0:00:48    1,013,481,472  15%  115.52MB/s    0:00:48    1,144,553,472  17%  115.35MB/s    0:00:47    1,258,651,648  18%  110.37MB/s    0:00:48    1,394,049,024  20%  119.42MB/s    0:00:43    1,508,409,344  22%  117.76MB/s    0:00:43    1,629,782,016  24%  115.46MB/s    0:00:43    1,737,261,056  25%  114.00MB/s    0:00:42    1,857,159,168  27%  110.30MB/s    0:00:43    1,976,926,208  29%  111.79MB/s    0:00:41    2,112,454,656  31%  115.16MB/s    0:00:39    2,224,652,288  33%  116.26MB/s    0:00:37    2,345,533,440  34%  116.50MB/s    0:00:36    2,505,736,192  37%  126.17MB/s    0:00:32    2,642,083,840  39%  126.37MB/s    0:00:31    2,761,195,520  41%  124.83MB/s    0:00:30    2,862,612,480  42%  120.30MB/s    0:00:31    2,981,724,160  44%  110.61MB/s    0:00:33    3,100,475,392  46%  106.29MB/s    0:00:33    3,224,666,112  47%  110.00MB/s    0:00:31    3,351,085,056  49%  115.71MB/s    0:00:28    3,438,346,240  51%  108.30MB/s    0:00:29    3,554,705,408  52%  107.97MB/s    0:00:28    3,681,255,424  54%  108.75MB/s    0:00:27    3,815,079,936  56%  110.71MB/s    0:00:25    3,949,101,056  58%  121.86MB/s    0:00:22    4,082,728,960  60%  125.99MB/s    0:00:20    4,182,900,736  62%  119.66MB/s    0:00:20    4,305,813,504  64%  117.06MB/s    0:00:20    4,437,114,880  66%  116.41MB/s    0:00:19    4,565,991,424  67%  115.28MB/s    0:00:18    4,650,532,864  69%  111.58MB/s    0:00:18    4,764,729,344  70%  109.50MB/s    0:00:17    4,866,146,304  72%  102.37MB/s    0:00:17    4,968,251,392  73%   95.98MB/s    0:00:17    5,123,047,424  76%  112.74MB/s    0:00:13    5,250,318,336  78%  115.86MB/s    0:00:12    5,373,263,872  79%  121.00MB/s    0:00:10    5,523,406,848  82%  132.46MB/s    0:00:08    5,658,476,544  84%  127.75MB/s    0:00:08    5,793,906,688  86%  129.70MB/s    0:00:06    5,930,156,032  88%  132.87MB/s    0:00:05    6,033,375,232  89%  121.65MB/s    0:00:05    6,149,799,936  91%  117.23MB/s    0:00:04    6,273,236,992  93%  114.37MB/s    0:00:03    6,390,349,824  95%  109.77MB/s    0:00:02    6,472,630,272  96%  104.78MB/s    0:00:02    6,598,328,320  98%  106.99MB/s    0:00:01    6,719,753,674 100%  114.35MB/s    0:00:56 (xfr#7, to-chk=1/14)
-oral_catalog/sample/P18161_279_S75_L001/P18161_279_S75_L001_2_census_stage_0.ini
-            273 100%    0.29kB/s    0:00:00              273 100%    0.29kB/s    0:00:00 (xfr#8, to-chk=0/14)
-
-sent 13,521,403,699 bytes  received 263 bytes  120,190,257.44 bytes/sec
-total size is 13,518,102,516  speedup is 1.00
-...Tue Apr 27 08:35:05 CEST 2021: Recover - done
-
-ruby: warning: shebang line ending with \r may cause problems
-/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:146: warning: constant ::Fixnum is deprecated
-/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:161: warning: Insecure world writable dir /proj/uppstore2019028/Helen/meteor-linux.2019-11-04 in PATH, mode 042777
-18962659 reads; of these:
-  18962659 (100.00%) were unpaired; of these:
-    14411249 (76.00%) aligned 0 times
-    1095660 (5.78%) aligned exactly 1 time
-    3455750 (18.22%) aligned >1 times
-24.00% overall alignment rate
-18962659 reads; of these:
-  18962659 (100.00%) were unpaired; of these:
-    4217910 (22.24%) aligned 0 times
-    14744749 (77.76%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-77.76% overall alignment rate
-18962659 reads; of these:
-  18962659 (100.00%) were unpaired; of these:
-    18959124 (99.98%) aligned 0 times
-    3535 (0.02%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.02% overall alignment rate
-18962659 reads; of these:
-  18962659 (100.00%) were unpaired; of these:
-    18705621 (98.64%) aligned 0 times
-    257038 (1.36%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-1.36% overall alignment rate
-18962659 reads; of these:
-  18962659 (100.00%) were unpaired; of these:
-    14559883 (76.78%) aligned 0 times
-    1068312 (5.63%) aligned exactly 1 time
-    3334464 (17.58%) aligned >1 times
-23.22% overall alignment rate
-18962659 reads; of these:
-  18962659 (100.00%) were unpaired; of these:
-    4566646 (24.08%) aligned 0 times
-    14396013 (75.92%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-75.92% overall alignment rate
-18962659 reads; of these:
-  18962659 (100.00%) were unpaired; of these:
-    18959107 (99.98%) aligned 0 times
-    3552 (0.02%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.02% overall alignment rate
-18962659 reads; of these:
-  18962659 (100.00%) were unpaired; of these:
-    18716053 (98.70%) aligned 0 times
-    246606 (1.30%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-1.30% overall alignment rate
-...Mon Apr 26 19:23:48 CEST 2021: Parse_variables - begin
-v_downstream_dir=/scratch/19619726/P18161_237_S38_L001/Downstream
-v_fastqgz1=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_237/02-FASTQ/201120_A00187_0386_BHGTNWDSXY/P18161_237_S38_L001_R1_001.fastq.gz
-v_fastqgz1_unzip=/scratch/19619726/P18161_237_S38_L001/working/P18161_237_S38_L001_R1_001.fastq.unzipped
-v_fastqgz2=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_237/02-FASTQ/201120_A00187_0386_BHGTNWDSXY/P18161_237_S38_L001_R2_001.fastq.gz
-v_fastqgz2_unzip=/scratch/19619726/P18161_237_S38_L001/working/P18161_237_S38_L001_R2_001.fastq.unzipped
-v_final1=/scratch/19619726/P18161_237_S38_L001/working/P18161_237_S38_L001_1.fastq
-v_final2=/scratch/19619726/P18161_237_S38_L001/working/P18161_237_S38_L001_2.fastq
-v_prefix=vs_hs_10_4_oral_catalog
-v_project_dir=/scratch/19619726/P18161_237_S38_L001
-v_sampledir=/scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001
-v_trimmedS=/scratch/19619726/P18161_237_S38_L001/working/P18161_237_S38_L001.trimmed.s.fastq
-v_workdir=/scratch/19619726/P18161_237_S38_L001/working
-...Mon Apr 26 19:23:48 CEST 2021: Parse_variables - done
-
-...Mon Apr 26 19:23:48 CEST 2021: Init - begin
-...Mon Apr 26 19:23:48 CEST 2021: Init - done
-
-...Mon Apr 26 19:23:48 CEST 2021: Decompress - begin
-...Mon Apr 26 19:27:24 CEST 2021: Decompress - done
-
-...Mon Apr 26 19:27:24 CEST 2021: Trim - begin
-AlienTrimmer main options: -k 10 -l 45 -m 5 -q 20 -p 40 (Phred+33)  /  439 fwd alien sequence(s)  /  7856 fwd k-mers (k=10)  /  439 rev alien sequence(s)  /  7856 rev k-mers (k=10)
-[02:12]   1,000,000 read pairs processed:     626,774 trimmed (fwd:     296,305  rev:     330,469)      11,803 removed (fwd:       3,506  rev:       8,297)
-[04:27]   2,000,000 read pairs processed:   1,256,768 trimmed (fwd:     590,898  rev:     665,870)      24,066 removed (fwd:       6,935  rev:      17,131)
-[06:45]   3,000,000 read pairs processed:   1,886,605 trimmed (fwd:     883,699  rev:   1,002,906)      35,857 removed (fwd:      10,183  rev:      25,674)
-[08:51]   4,000,000 read pairs processed:   2,517,956 trimmed (fwd:   1,176,507  rev:   1,341,449)      47,999 removed (fwd:      13,496  rev:      34,503)
-[11:03]   5,000,000 read pairs processed:   3,166,233 trimmed (fwd:   1,473,681  rev:   1,692,552)      60,522 removed (fwd:      16,584  rev:      43,938)
-[13:03]   6,000,000 read pairs processed:   3,799,186 trimmed (fwd:   1,769,514  rev:   2,029,672)      71,834 removed (fwd:      19,862  rev:      51,972)
-[15:03]   7,000,000 read pairs processed:   4,438,094 trimmed (fwd:   2,064,877  rev:   2,373,217)      84,158 removed (fwd:      23,070  rev:      61,088)
-[17:05]   8,000,000 read pairs processed:   5,069,563 trimmed (fwd:   2,358,435  rev:   2,711,128)      96,161 removed (fwd:      26,343  rev:      69,818)
-[19:11]   9,000,000 read pairs processed:   5,703,681 trimmed (fwd:   2,653,494  rev:   3,050,187)     107,916 removed (fwd:      29,589  rev:      78,327)
-[21:19]  10,000,000 read pairs processed:   6,345,662 trimmed (fwd:   2,949,301  rev:   3,396,361)     120,306 removed (fwd:      32,644  rev:      87,662)
-[23:20]  11,000,000 read pairs processed:   6,971,566 trimmed (fwd:   3,240,864  rev:   3,730,702)     131,232 removed (fwd:      35,805  rev:      95,427)
-[25:28]  12,000,000 read pairs processed:   7,605,380 trimmed (fwd:   3,530,614  rev:   4,074,766)     143,836 removed (fwd:      38,907  rev:     104,929)
-[27:30]  13,000,000 read pairs processed:   8,236,744 trimmed (fwd:   3,824,353  rev:   4,412,391)     156,621 removed (fwd:      42,246  rev:     114,375)
-[29:43]  14,000,000 read pairs processed:   8,871,110 trimmed (fwd:   4,120,006  rev:   4,751,104)     169,155 removed (fwd:      45,579  rev:     123,576)
-[33:05]  15,000,000 read pairs processed:   9,562,299 trimmed (fwd:   4,433,856  rev:   5,128,443)     184,405 removed (fwd:      48,888  rev:     135,517)
-[36:02]  16,000,000 read pairs processed:  10,303,483 trimmed (fwd:   4,768,985  rev:   5,534,498)     201,315 removed (fwd:      52,437  rev:     148,878)
-[38:11]  17,000,000 read pairs processed:  11,003,699 trimmed (fwd:   5,089,225  rev:   5,914,474)     216,160 removed (fwd:      55,843  rev:     160,317)
-[40:23]  18,000,000 read pairs processed:  11,732,680 trimmed (fwd:   5,420,723  rev:   6,311,957)     230,728 removed (fwd:      59,034  rev:     171,694)
-[42:27]  19,000,000 read pairs processed:  12,405,429 trimmed (fwd:   5,729,750  rev:   6,675,679)     244,591 removed (fwd:      62,222  rev:     182,369)
-[44:30]  20,000,000 read pairs processed:  13,111,948 trimmed (fwd:   6,053,685  rev:   7,058,263)     258,667 removed (fwd:      65,392  rev:     193,275)
-[46:29]  21,000,000 read pairs processed:  13,771,345 trimmed (fwd:   6,352,919  rev:   7,418,426)     272,161 removed (fwd:      68,789  rev:     203,372)
-[48:34]  22,000,000 read pairs processed:  14,451,296 trimmed (fwd:   6,656,977  rev:   7,794,319)     286,234 removed (fwd:      72,067  rev:     214,167)
-[50:36]  23,000,000 read pairs processed:  15,116,616 trimmed (fwd:   6,963,531  rev:   8,153,085)     298,888 removed (fwd:      75,347  rev:     223,541)
-[52:39]  24,000,000 read pairs processed:  15,778,967 trimmed (fwd:   7,264,243  rev:   8,514,724)     312,749 removed (fwd:      78,416  rev:     234,333)
-[54:45]  25,000,000 read pairs processed:  16,454,845 trimmed (fwd:   7,574,188  rev:   8,880,657)     326,159 removed (fwd:      81,592  rev:     244,567)
-[56:53]  26,000,000 read pairs processed:  17,132,268 trimmed (fwd:   7,884,904  rev:   9,247,364)     339,763 removed (fwd:      84,782  rev:     254,981)
-[59:04]  27,000,000 read pairs processed:  17,842,879 trimmed (fwd:   8,205,192  rev:   9,637,687)     355,701 removed (fwd:      87,893  rev:     267,808)
-[61:31]  28,000,000 read pairs processed:  18,520,980 trimmed (fwd:   8,521,062  rev:   9,999,918)     369,584 removed (fwd:      91,370  rev:     278,214)
-[64:04]  29,000,000 read pairs processed:  19,220,509 trimmed (fwd:   8,838,772  rev:  10,381,737)     385,579 removed (fwd:      94,706  rev:     290,873)
-[64:40]  29,239,888 read pairs processed:  19,397,296 trimmed (fwd:   8,917,193  rev:  10,480,103)     389,931 removed (fwd:      95,427  rev:     294,504)
-...Mon Apr 26 20:33:06 CEST 2021: Trim - done
-
-...Mon Apr 26 20:33:06 CEST 2021: Import - begin
-Import /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001_2.fastq
-Import /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001_1.fastq
-Importation done!
-...Mon Apr 26 20:33:10 CEST 2021: Import - done
-
-...Mon Apr 26 20:33:10 CEST 2021: Map_reads - begin
-
-Launch mapping
-
-
-######### Meteor Mapping task description
-Sample name = P18161_237_S38_L001
-Library name = P18161_237_S38_L001_1
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-
-######### Task main mapping 0
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_1.fastq.idx -S /scratch/19619726/P18161_237_S38_L001/oral_catalog/mapping/P18161_237_S38_L001/mapping_vs_oral_catalog_P18161_237_S38_L001_1/P18161_237_S38_L001_1_1.sam
-
-######### TaskExcludedMapping(0, 1) ; reference name: Homo_sapiens_GRCh38
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_1.fastq.idx -S /scratch/19619726/P18161_237_S38_L001/oral_catalog/mapping/P18161_237_S38_L001/mapping_vs_Homo_sapiens_GRCh38_P18161_237_S38_L001_1/P18161_237_S38_L001_1_1.sam
-
-######### TaskExcludedMapping(0, 2) ; reference name: A_thaliana_TAIR10
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_1.fastq.idx -S /scratch/19619726/P18161_237_S38_L001/oral_catalog/mapping/P18161_237_S38_L001/mapping_vs_A_thaliana_TAIR10_P18161_237_S38_L001_1/P18161_237_S38_L001_1_1.sam
-
-######### TaskExcludedMapping(0, 3) ; reference name: Bos_taurus_UMD3
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_1.fastq.idx -S /scratch/19619726/P18161_237_S38_L001/oral_catalog/mapping/P18161_237_S38_L001/mapping_vs_Bos_taurus_UMD3_P18161_237_S38_L001_1/P18161_237_S38_L001_1_1.sam
-removing re-indexed file:
-/scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_1.fastq.idx
-
-
-######### Meteor Mapping task description
-Sample name = P18161_237_S38_L001
-Library name = P18161_237_S38_L001_2
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-
-######### Task main mapping 1
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_2.fastq.idx -S /scratch/19619726/P18161_237_S38_L001/oral_catalog/mapping/P18161_237_S38_L001/mapping_vs_oral_catalog_P18161_237_S38_L001_2/P18161_237_S38_L001_2_1.sam
-
-######### TaskExcludedMapping(1, 1) ; reference name: Homo_sapiens_GRCh38
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_2.fastq.idx -S /scratch/19619726/P18161_237_S38_L001/oral_catalog/mapping/P18161_237_S38_L001/mapping_vs_Homo_sapiens_GRCh38_P18161_237_S38_L001_2/P18161_237_S38_L001_2_1.sam
-
-######### TaskExcludedMapping(1, 2) ; reference name: A_thaliana_TAIR10
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_2.fastq.idx -S /scratch/19619726/P18161_237_S38_L001/oral_catalog/mapping/P18161_237_S38_L001/mapping_vs_A_thaliana_TAIR10_P18161_237_S38_L001_2/P18161_237_S38_L001_2_1.sam
-
-######### TaskExcludedMapping(1, 3) ; reference name: Bos_taurus_UMD3
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_2.fastq.idx -S /scratch/19619726/P18161_237_S38_L001/oral_catalog/mapping/P18161_237_S38_L001/mapping_vs_Bos_taurus_UMD3_P18161_237_S38_L001_2/P18161_237_S38_L001_2_1.sam
-removing re-indexed file:
-/scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001/5d4249c53eeaf68d5a689bb2a56ee947/P18161_237_S38_L001_2.fastq.idx
-
-Launch counting
-
-Executing counting command:
-meteor-counter -w xaq.ini -i /scratch/19619726/P18161_237_S38_L001/oral_catalog/sample/P18161_237_S38_L001 -p /scratch/19619726/P18161_237_S38_L001/oral_catalog -o mapping
-######### workspace preparation
-######### Meteor task description
-Sample name = P18161_237_S38_L001
-Library name = P18161_237_S38_L001_1
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-######### Meteor task description
-Sample name = P18161_237_S38_L001
-Library name = P18161_237_S38_L001_2
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-######### Task main counting
-
-Job finished !
-Done !
-Job finished without errors ...
-...Tue Apr 27 14:36:23 CEST 2021: Map_reads - done
-
-...Tue Apr 27 14:36:23 CEST 2021: Quantify - begin
-SampleCount: 1
-RunSampleCount: 2
-
-######### profiling job started
-
-1000000 processed records.
-2000000 processed records.
-3000000 processed records.
-4000000 processed records.
-5000000 processed records.
-6000000 processed records.
-7000000 processed records.
-8000000 processed records.
-8403558 processed records.
-
-Merged profiled data are saved here: /scratch/19619726/P18161_237_S38_L001/oral_catalog/profiles/P18161_237_S38_L001.tsv
-
-Counting report is saved here: /scratch/19619726/P18161_237_S38_L001/oral_catalog/profiles/P18161_237_S38_L001_counting_report.csv
-
-Extended counting report is saved here: /scratch/19619726/P18161_237_S38_L001/oral_catalog/profiles/P18161_237_S38_L001_extended_counting_report.csv
-
-######### Job finished
-...Tue Apr 27 14:36:55 CEST 2021: Quantify - done
-
-...Tue Apr 27 14:36:55 CEST 2021: Recover - begin
-sending incremental file list
-./
-oral_catalog/
-oral_catalog/mapping/
-oral_catalog/profiles/
-oral_catalog/profiles/P18161_237_S38_L001.tsv
-         32,768   0%    0.00kB/s    0:00:00       83,849,611 100%  231.02MB/s    0:00:00 (xfr#1, to-chk=8/14)
-oral_catalog/profiles/P18161_237_S38_L001_counting_report.csv
-            504 100%    1.42kB/s    0:00:00              504 100%    1.42kB/s    0:00:00 (xfr#2, to-chk=7/14)
-oral_catalog/profiles/P18161_237_S38_L001_extended_counting_report.csv
-            756 100%    2.13kB/s    0:00:00              756 100%    2.13kB/s    0:00:00 (xfr#3, to-chk=6/14)
-oral_catalog/profiles/P18161_237_S38_L001_gene_profile.ini
-          3,072 100%    8.67kB/s    0:00:00            3,072 100%    8.67kB/s    0:00:00 (xfr#4, to-chk=5/14)
-oral_catalog/sample/
-oral_catalog/sample/P18161_237_S38_L001/
-oral_catalog/sample/P18161_237_S38_L001/P18161_237_S38_L001_1.fastq
-         32,768   0%   85.79kB/s   33:32:57      117,735,424   1%  112.28MB/s    0:01:29      340,852,736   3%  162.61MB/s    0:01:00      571,998,208   5%  181.95MB/s    0:00:52      782,794,752   7%  171.07MB/s    0:00:54    1,014,038,528   9%  195.87MB/s    0:00:46    1,264,058,368  12%  201.75MB/s    0:00:44    1,480,949,760  14%  198.68MB/s    0:00:43    1,666,187,264  16%  210.78MB/s    0:00:40    1,758,494,720  16%  176.30MB/s    0:00:47    1,849,163,776  17%  138.56MB/s    0:00:59    2,014,740,480  19%  126.41MB/s    0:01:04    2,192,867,328  21%  124.73MB/s    0:01:03    2,374,270,976  22%  146.92MB/s    0:00:53    2,557,542,400  24%  169.02MB/s    0:00:45    2,732,359,680  26%  171.18MB/s    0:00:43    2,913,042,432  28%  171.79MB/s    0:00:42    3,097,100,288  29%  172.42MB/s    0:00:41    3,278,372,864  31%  171.95MB/s    0:00:40    3,449,585,664  33%  171.13MB/s    0:00:39    3,628,105,728  35%  170.53MB/s    0:00:38    3,799,580,672  36%  167.53MB/s    0:00:38    3,978,330,112  38%  166.92MB/s    0:00:37    4,143,742,976  39%  165.54MB/s    0:00:36    4,236,804,096  40%  145.12MB/s    0:00:41    4,397,760,512  42%  142.55MB/s    0:00:40    4,632,903,680  44%  156.02MB/s    0:00:35    4,883,316,736  47%  176.28MB/s    0:00:30    5,146,771,456  49%  217.01MB/s    0:00:23    5,404,721,152  52%  240.26MB/s    0:00:20    5,673,385,984  54%  248.26MB/s    0:00:18    5,910,331,392  57%  245.04MB/s    0:00:17    6,092,783,616  58%  225.66MB/s    0:00:18    6,270,287,872  60%  206.47MB/s    0:00:19    6,444,843,008  62%  183.98MB/s    0:00:20    6,609,174,528  63%  166.66MB/s    0:00:21    6,792,708,096  65%  166.96MB/s    0:00:20    6,969,688,064  67%  166.83MB/s    0:00:19    7,141,490,688  68%  166.22MB/s    0:00:18    7,323,615,232  70%  170.46MB/s    0:00:17    7,511,048,192  72%  171.39MB/s    0:00:16    7,684,325,376  74%  170.51MB/s    0:00:15    7,849,574,400  75%  168.95MB/s    0:00:14    8,025,014,272  77%  167.35MB/s    0:00:13    8,150,614,016  78%  152.60MB/s    0:00:14    8,309,473,280  80%  149.16MB/s    0:00:13    8,484,847,616  81%  151.57MB/s    0:00:12    8,660,189,184  83%  151.55MB/s    0:00:10    8,835,399,680  85%  163.39MB/s    0:00:09    9,006,514,176  86%  166.31MB/s    0:00:07    9,175,859,200  88%  164.87MB/s    0:00:07    9,351,659,520  90%  164.98MB/s    0:00:05    9,516,384,256  91%  162.48MB/s    0:00:05    9,685,991,424  93%  162.12MB/s    0:00:04    9,865,953,280  95%  164.65MB/s    0:00:02   10,044,604,416  96%  165.29MB/s    0:00:01   10,217,455,616  98%  167.27MB/s    0:00:00   10,361,658,584 100%  172.83MB/s    0:00:57 (xfr#5, to-chk=3/14)
-oral_catalog/sample/P18161_237_S38_L001/P18161_237_S38_L001_1_census_stage_0.ini
-            273 100%    0.33kB/s    0:00:00              273 100%    0.33kB/s    0:00:00 (xfr#6, to-chk=2/14)
-oral_catalog/sample/P18161_237_S38_L001/P18161_237_S38_L001_2.fastq
-         32,768   0%   38.37kB/s   74:48:16       31,555,584   0%   30.09MB/s    0:05:34      207,716,352   2%   99.10MB/s    0:01:39      340,197,376   3%  108.22MB/s    0:01:30      498,565,120   4%  118.96MB/s    0:01:20      674,070,528   6%  153.30MB/s    0:01:01      848,068,608   8%  152.79MB/s    0:01:00    1,027,375,104   9%  163.96MB/s    0:00:55    1,195,868,160  11%  166.37MB/s    0:00:53    1,369,243,648  13%  165.87MB/s    0:00:52    1,543,208,960  14%  165.86MB/s    0:00:51    1,725,235,200  16%  166.51MB/s    0:00:50    1,906,737,152  18%  169.61MB/s    0:00:48    2,091,417,600  20%  172.31MB/s    0:00:46    2,237,628,416  21%  165.69MB/s    0:00:47    2,413,101,056  23%  164.12MB/s    0:00:47    2,584,772,608  25%  161.78MB/s    0:00:46    2,767,552,512  26%  161.32MB/s    0:00:45    2,899,083,264  28%  157.23MB/s    0:00:46    3,059,580,928  29%  153.63MB/s    0:00:46    3,228,336,128  31%  152.94MB/s    0:00:45    3,402,661,888  32%  150.93MB/s    0:00:44    3,572,793,344  34%  160.75MB/s    0:00:41    3,737,419,776  36%  161.73MB/s    0:00:39    3,915,218,944  37%  163.89MB/s    0:00:38    4,086,071,296  39%  163.06MB/s    0:00:37    4,261,773,312  41%  164.39MB/s    0:00:36    4,431,314,944  42%  165.52MB/s    0:00:34    4,608,622,592  44%  165.44MB/s    0:00:33    4,772,593,664  46%  163.80MB/s    0:00:33    4,953,047,040  47%  164.94MB/s    0:00:31    5,132,943,360  49%  167.41MB/s    0:00:30    5,310,087,168  51%  167.37MB/s    0:00:29    5,474,385,920  52%  165.38MB/s    0:00:28    5,611,814,912  54%  155.24MB/s    0:00:29    5,782,339,584  55%  153.03MB/s    0:00:29    5,955,158,016  57%  151.94MB/s    0:00:28    6,135,775,232  59%  157.69MB/s    0:00:25    6,317,113,344  61%  168.16MB/s    0:00:23    6,493,339,648  62%  169.56MB/s    0:00:22    6,671,335,424  64%  170.88MB/s    0:00:20    6,855,688,192  66%  171.77MB/s    0:00:19    7,033,094,144  68%  170.83MB/s    0:00:18    7,214,759,936  69%  172.09MB/s    0:00:17    7,393,345,536  71%  172.23MB/s    0:00:16    7,578,157,056  73%  172.34MB/s    0:00:15    7,757,004,800  75%  172.72MB/s    0:00:14    7,938,277,376  76%  172.63MB/s    0:00:13    8,102,379,520  78%  167.79MB/s    0:00:12    8,278,540,288  80%  165.70MB/s    0:00:12    8,460,009,472  81%  166.32MB/s    0:00:10    8,641,413,120  83%  166.35MB/s    0:00:09    8,823,013,376  85%  171.86MB/s    0:00:08    9,009,594,368  87%  174.38MB/s    0:00:07    9,183,559,680  88%  172.59MB/s    0:00:06    9,363,292,160  90%  172.20MB/s    0:00:05    9,546,006,528  92%  172.50MB/s    0:00:04    9,729,703,936  94%  171.82MB/s    0:00:03    9,903,964,160  95%  171.89MB/s    0:00:02   10,086,285,312  97%  172.50MB/s    0:00:01   10,264,084,480  99%  171.33MB/s    0:00:00   10,332,752,712 100%  163.06MB/s    0:01:00 (xfr#7, to-chk=1/14)
-oral_catalog/sample/P18161_237_S38_L001/P18161_237_S38_L001_2_census_stage_0.ini
-            273 100%    0.70kB/s    0:00:00              273 100%    0.70kB/s    0:00:00 (xfr#8, to-chk=0/14)
-
-sent 20,783,339,477 bytes  received 263 bytes  172,475,848.46 bytes/sec
-total size is 20,778,265,785  speedup is 1.00
-...Tue Apr 27 14:38:55 CEST 2021: Recover - done
-
-ruby: warning: shebang line ending with \r may cause problems
-/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:146: warning: constant ::Fixnum is deprecated
-/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:161: warning: Insecure world writable dir /proj/uppstore2019028/Helen/meteor-linux.2019-11-04 in PATH, mode 042777
-28872082 reads; of these:
-  28872082 (100.00%) were unpaired; of these:
-    16482952 (57.09%) aligned 0 times
-    3136514 (10.86%) aligned exactly 1 time
-    9252616 (32.05%) aligned >1 times
-42.91% overall alignment rate
-28872082 reads; of these:
-  28872082 (100.00%) were unpaired; of these:
-    15023802 (52.04%) aligned 0 times
-    13848280 (47.96%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-47.96% overall alignment rate
-28872082 reads; of these:
-  28872082 (100.00%) were unpaired; of these:
-    28864183 (99.97%) aligned 0 times
-    7899 (0.03%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.03% overall alignment rate
-28872082 reads; of these:
-  28872082 (100.00%) were unpaired; of these:
-    28595555 (99.04%) aligned 0 times
-    276527 (0.96%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.96% overall alignment rate
-28872082 reads; of these:
-  28872082 (100.00%) were unpaired; of these:
-    17004260 (58.90%) aligned 0 times
-    3062015 (10.61%) aligned exactly 1 time
-    8805807 (30.50%) aligned >1 times
-41.10% overall alignment rate
-28872082 reads; of these:
-  28872082 (100.00%) were unpaired; of these:
-    15461057 (53.55%) aligned 0 times
-    13411025 (46.45%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-46.45% overall alignment rate
-28872082 reads; of these:
-  28872082 (100.00%) were unpaired; of these:
-    28863916 (99.97%) aligned 0 times
-    8166 (0.03%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.03% overall alignment rate
-28872082 reads; of these:
-  28872082 (100.00%) were unpaired; of these:
-    28609987 (99.09%) aligned 0 times
-    262095 (0.91%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.91% overall alignment rate
-...Mon Apr 26 19:23:48 CEST 2021: Parse_variables - begin
-v_downstream_dir=/scratch/19619726/P18161_275_S71_L001/Downstream
-v_fastqgz1=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_275/02-FASTQ/201120_A00187_0386_BHGTNWDSXY/P18161_275_S71_L001_R1_001.fastq.gz
-v_fastqgz1_unzip=/scratch/19619726/P18161_275_S71_L001/working/P18161_275_S71_L001_R1_001.fastq.unzipped
-v_fastqgz2=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_275/02-FASTQ/201120_A00187_0386_BHGTNWDSXY/P18161_275_S71_L001_R2_001.fastq.gz
-v_fastqgz2_unzip=/scratch/19619726/P18161_275_S71_L001/working/P18161_275_S71_L001_R2_001.fastq.unzipped
-v_final1=/scratch/19619726/P18161_275_S71_L001/working/P18161_275_S71_L001_1.fastq
-v_final2=/scratch/19619726/P18161_275_S71_L001/working/P18161_275_S71_L001_2.fastq
-v_prefix=vs_hs_10_4_oral_catalog
-v_project_dir=/scratch/19619726/P18161_275_S71_L001
-v_sampledir=/scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001
-v_trimmedS=/scratch/19619726/P18161_275_S71_L001/working/P18161_275_S71_L001.trimmed.s.fastq
-v_workdir=/scratch/19619726/P18161_275_S71_L001/working
-...Mon Apr 26 19:23:48 CEST 2021: Parse_variables - done
-
-...Mon Apr 26 19:23:48 CEST 2021: Init - begin
-...Mon Apr 26 19:23:48 CEST 2021: Init - done
-
-...Mon Apr 26 19:23:48 CEST 2021: Decompress - begin
-...Mon Apr 26 19:27:32 CEST 2021: Decompress - done
-
-...Mon Apr 26 19:27:32 CEST 2021: Trim - begin
-AlienTrimmer main options: -k 10 -l 45 -m 5 -q 20 -p 40 (Phred+33)  /  439 fwd alien sequence(s)  /  7856 fwd k-mers (k=10)  /  439 rev alien sequence(s)  /  7856 rev k-mers (k=10)
-[02:02]   1,000,000 read pairs processed:     730,993 trimmed (fwd:     354,819  rev:     376,174)      11,032 removed (fwd:       4,645  rev:       6,387)
-[04:05]   2,000,000 read pairs processed:   1,466,658 trimmed (fwd:     709,662  rev:     756,996)      22,262 removed (fwd:       9,346  rev:      12,916)
-[06:06]   3,000,000 read pairs processed:   2,203,430 trimmed (fwd:   1,063,295  rev:   1,140,135)      33,411 removed (fwd:      13,944  rev:      19,467)
-[08:06]   4,000,000 read pairs processed:   2,930,332 trimmed (fwd:   1,412,564  rev:   1,517,768)      44,094 removed (fwd:      18,387  rev:      25,707)
-[10:06]   5,000,000 read pairs processed:   3,671,343 trimmed (fwd:   1,766,252  rev:   1,905,091)      55,051 removed (fwd:      22,749  rev:      32,302)
-[12:19]   6,000,000 read pairs processed:   4,409,445 trimmed (fwd:   2,120,150  rev:   2,289,295)      66,028 removed (fwd:      27,333  rev:      38,695)
-[14:36]   7,000,000 read pairs processed:   5,148,119 trimmed (fwd:   2,475,433  rev:   2,672,686)      76,849 removed (fwd:      31,708  rev:      45,141)
-[16:51]   8,000,000 read pairs processed:   5,886,845 trimmed (fwd:   2,828,891  rev:   3,057,954)      88,075 removed (fwd:      36,172  rev:      51,903)
-[19:03]   9,000,000 read pairs processed:   6,613,419 trimmed (fwd:   3,178,886  rev:   3,434,533)      98,877 removed (fwd:      40,713  rev:      58,164)
-[21:15]  10,000,000 read pairs processed:   7,348,972 trimmed (fwd:   3,532,232  rev:   3,816,740)     109,610 removed (fwd:      45,104  rev:      64,506)
-[23:26]  11,000,000 read pairs processed:   8,090,724 trimmed (fwd:   3,887,832  rev:   4,202,892)     120,617 removed (fwd:      49,588  rev:      71,029)
-[25:37]  12,000,000 read pairs processed:   8,819,922 trimmed (fwd:   4,237,618  rev:   4,582,304)     131,229 removed (fwd:      54,014  rev:      77,215)
-[27:55]  13,000,000 read pairs processed:   9,552,359 trimmed (fwd:   4,586,132  rev:   4,966,227)     142,098 removed (fwd:      58,400  rev:      83,698)
-[30:05]  14,000,000 read pairs processed:  10,286,092 trimmed (fwd:   4,939,165  rev:   5,346,927)     153,307 removed (fwd:      62,923  rev:      90,384)
-[32:14]  15,000,000 read pairs processed:  11,022,156 trimmed (fwd:   5,294,299  rev:   5,727,857)     164,447 removed (fwd:      67,525  rev:      96,922)
-[35:29]  16,000,000 read pairs processed:  11,781,900 trimmed (fwd:   5,656,352  rev:   6,125,548)     176,660 removed (fwd:      72,281  rev:     104,379)
-[38:52]  17,000,000 read pairs processed:  12,658,923 trimmed (fwd:   6,063,676  rev:   6,595,247)     193,169 removed (fwd:      77,042  rev:     116,127)
-[41:17]  18,000,000 read pairs processed:  13,448,943 trimmed (fwd:   6,442,035  rev:   7,006,908)     205,640 removed (fwd:      81,803  rev:     123,837)
-[43:30]  19,000,000 read pairs processed:  14,278,358 trimmed (fwd:   6,831,880  rev:   7,446,478)     218,378 removed (fwd:      86,355  rev:     132,023)
-[45:44]  20,000,000 read pairs processed:  15,048,823 trimmed (fwd:   7,198,110  rev:   7,850,713)     230,162 removed (fwd:      90,953  rev:     139,209)
-[47:58]  21,000,000 read pairs processed:  15,826,603 trimmed (fwd:   7,568,895  rev:   8,257,708)     242,005 removed (fwd:      95,443  rev:     146,562)
-[50:15]  22,000,000 read pairs processed:  16,613,166 trimmed (fwd:   7,941,124  rev:   8,672,042)     253,951 removed (fwd:      99,977  rev:     153,974)
-[52:33]  23,000,000 read pairs processed:  17,378,059 trimmed (fwd:   8,300,407  rev:   9,077,652)     266,117 removed (fwd:     104,780  rev:     161,337)
-[54:55]  24,000,000 read pairs processed:  18,159,257 trimmed (fwd:   8,667,884  rev:   9,491,373)     278,158 removed (fwd:     109,341  rev:     168,817)
-[57:21]  25,000,000 read pairs processed:  18,926,611 trimmed (fwd:   9,032,917  rev:   9,893,694)     289,770 removed (fwd:     113,943  rev:     175,827)
-[59:45]  26,000,000 read pairs processed:  19,693,702 trimmed (fwd:   9,395,465  rev:  10,298,237)     301,637 removed (fwd:     118,560  rev:     183,077)
-[62:20]  27,000,000 read pairs processed:  20,468,914 trimmed (fwd:   9,764,594  rev:  10,704,320)     313,527 removed (fwd:     123,116  rev:     190,411)
-[64:55]  28,000,000 read pairs processed:  21,246,826 trimmed (fwd:  10,134,309  rev:  11,112,517)     325,194 removed (fwd:     127,713  rev:     197,481)
-[68:02]  29,000,000 read pairs processed:  22,049,044 trimmed (fwd:  10,510,358  rev:  11,538,686)     337,254 removed (fwd:     132,156  rev:     205,098)
-[70:45]  30,000,000 read pairs processed:  22,829,927 trimmed (fwd:  10,886,576  rev:  11,943,351)     349,316 removed (fwd:     136,934  rev:     212,382)
-[73:23]  31,000,000 read pairs processed:  23,624,933 trimmed (fwd:  11,263,698  rev:  12,361,235)     361,933 removed (fwd:     141,711  rev:     220,222)
-[74:44]  31,510,079 read pairs processed:  24,037,215 trimmed (fwd:  11,456,486  rev:  12,580,729)     368,345 removed (fwd:     143,941  rev:     224,404)
-...Mon Apr 26 20:43:10 CEST 2021: Trim - done
-
-...Mon Apr 26 20:43:10 CEST 2021: Import - begin
-Import /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001_2.fastq
-Import /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001_1.fastq
-Importation done!
-...Mon Apr 26 20:43:15 CEST 2021: Import - done
-
-...Mon Apr 26 20:43:15 CEST 2021: Map_reads - begin
-
-Launch mapping
-
-
-######### Meteor Mapping task description
-Sample name = P18161_275_S71_L001
-Library name = P18161_275_S71_L001_1
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-
-######### Task main mapping 0
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_1.fastq.idx -S /scratch/19619726/P18161_275_S71_L001/oral_catalog/mapping/P18161_275_S71_L001/mapping_vs_oral_catalog_P18161_275_S71_L001_1/P18161_275_S71_L001_1_1.sam
-
-######### TaskExcludedMapping(0, 1) ; reference name: Homo_sapiens_GRCh38
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_1.fastq.idx -S /scratch/19619726/P18161_275_S71_L001/oral_catalog/mapping/P18161_275_S71_L001/mapping_vs_Homo_sapiens_GRCh38_P18161_275_S71_L001_1/P18161_275_S71_L001_1_1.sam
-
-######### TaskExcludedMapping(0, 2) ; reference name: A_thaliana_TAIR10
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_1.fastq.idx -S /scratch/19619726/P18161_275_S71_L001/oral_catalog/mapping/P18161_275_S71_L001/mapping_vs_A_thaliana_TAIR10_P18161_275_S71_L001_1/P18161_275_S71_L001_1_1.sam
-
-######### TaskExcludedMapping(0, 3) ; reference name: Bos_taurus_UMD3
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_1.fastq.idx -S /scratch/19619726/P18161_275_S71_L001/oral_catalog/mapping/P18161_275_S71_L001/mapping_vs_Bos_taurus_UMD3_P18161_275_S71_L001_1/P18161_275_S71_L001_1_1.sam
-removing re-indexed file:
-/scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_1.fastq.idx
-
-
-######### Meteor Mapping task description
-Sample name = P18161_275_S71_L001
-Library name = P18161_275_S71_L001_2
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-
-######### Task main mapping 1
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_2.fastq.idx -S /scratch/19619726/P18161_275_S71_L001/oral_catalog/mapping/P18161_275_S71_L001/mapping_vs_oral_catalog_P18161_275_S71_L001_2/P18161_275_S71_L001_2_1.sam
-
-######### TaskExcludedMapping(1, 1) ; reference name: Homo_sapiens_GRCh38
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_2.fastq.idx -S /scratch/19619726/P18161_275_S71_L001/oral_catalog/mapping/P18161_275_S71_L001/mapping_vs_Homo_sapiens_GRCh38_P18161_275_S71_L001_2/P18161_275_S71_L001_2_1.sam
-
-######### TaskExcludedMapping(1, 2) ; reference name: A_thaliana_TAIR10
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_2.fastq.idx -S /scratch/19619726/P18161_275_S71_L001/oral_catalog/mapping/P18161_275_S71_L001/mapping_vs_A_thaliana_TAIR10_P18161_275_S71_L001_2/P18161_275_S71_L001_2_1.sam
-
-######### TaskExcludedMapping(1, 3) ; reference name: Bos_taurus_UMD3
-Executing mapping command:
-bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_2.fastq.idx -S /scratch/19619726/P18161_275_S71_L001/oral_catalog/mapping/P18161_275_S71_L001/mapping_vs_Bos_taurus_UMD3_P18161_275_S71_L001_2/P18161_275_S71_L001_2_1.sam
-removing re-indexed file:
-/scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001/6975e61b623aad6bb45c40b1b9727ebb/P18161_275_S71_L001_2.fastq.idx
-
-Launch counting
-
-Executing counting command:
-meteor-counter -w xaq.ini -i /scratch/19619726/P18161_275_S71_L001/oral_catalog/sample/P18161_275_S71_L001 -p /scratch/19619726/P18161_275_S71_L001/oral_catalog -o mapping
-######### workspace preparation
-######### Meteor task description
-Sample name = P18161_275_S71_L001
-Library name = P18161_275_S71_L001_2
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-######### Meteor task description
-Sample name = P18161_275_S71_L001
-Library name = P18161_275_S71_L001_1
-Project name = oral_catalog
-Sequencing device = illumina
-Workflow = xaq.ini
-######### Task main counting
-
-Job finished !
-Done !
-Job finished without errors ...
-...Tue Apr 27 16:10:18 CEST 2021: Map_reads - done
-
-...Tue Apr 27 16:10:18 CEST 2021: Quantify - begin
-SampleCount: 1
-RunSampleCount: 2
-
-######### profiling job started
-
-1000000 processed records.
-2000000 processed records.
-3000000 processed records.
-4000000 processed records.
-5000000 processed records.
-6000000 processed records.
-7000000 processed records.
-8000000 processed records.
-8403558 processed records.
-
-Merged profiled data are saved here: /scratch/19619726/P18161_275_S71_L001/oral_catalog/profiles/P18161_275_S71_L001.tsv
-
-Counting report is saved here: /scratch/19619726/P18161_275_S71_L001/oral_catalog/profiles/P18161_275_S71_L001_counting_report.csv
-
-Extended counting report is saved here: /scratch/19619726/P18161_275_S71_L001/oral_catalog/profiles/P18161_275_S71_L001_extended_counting_report.csv
-
-######### Job finished
-...Tue Apr 27 16:10:50 CEST 2021: Quantify - done
-
-...Tue Apr 27 16:10:51 CEST 2021: Recover - begin
-sending incremental file list
-./
-oral_catalog/
-oral_catalog/mapping/
-oral_catalog/profiles/
-oral_catalog/profiles/P18161_275_S71_L001.tsv
-         32,768   0%    0.00kB/s    0:00:00       87,750,578 100%  195.91MB/s    0:00:00 (xfr#1, to-chk=8/14)
-oral_catalog/profiles/P18161_275_S71_L001_counting_report.csv
-            503 100%    1.15kB/s    0:00:00              503 100%    1.15kB/s    0:00:00 (xfr#2, to-chk=7/14)
-oral_catalog/profiles/P18161_275_S71_L001_extended_counting_report.csv
-            760 100%    1.74kB/s    0:00:00              760 100%    1.74kB/s    0:00:00 (xfr#3, to-chk=6/14)
-oral_catalog/profiles/P18161_275_S71_L001_gene_profile.ini
-          3,081 100%    7.05kB/s    0:00:00            3,081 100%    7.05kB/s    0:00:00 (xfr#4, to-chk=5/14)
-oral_catalog/sample/
-oral_catalog/sample/P18161_275_S71_L001/
-oral_catalog/sample/P18161_275_S71_L001/P18161_275_S71_L001_1.fastq
-         32,768   0%   72.23kB/s   42:05:32       94,830,592   0%   90.44MB/s    0:01:57      232,194,048   2%  110.77MB/s    0:01:34      394,362,880   3%  125.45MB/s    0:01:22      551,583,744   5%  131.61MB/s    0:01:17      728,006,656   6%  151.07MB/s    0:01:06      886,800,384   8%  156.19MB/s    0:01:02    1,054,474,240   9%  157.50MB/s    0:01:01    1,236,664,320  11%  163.46MB/s    0:00:58    1,411,481,600  12%  163.08MB/s    0:00:57    1,576,828,928  14%  164.27MB/s    0:00:55    1,755,906,048  16%  166.98MB/s    0:00:53    1,828,749,312  16%  134.60MB/s    0:01:06    2,001,240,064  18%  134.04MB/s    0:01:05    2,168,225,792  19%  134.73MB/s    0:01:03    2,339,667,968  21%  133.00MB/s    0:01:03    2,505,146,368  22%  161.39MB/s    0:00:51    2,665,316,352  24%  158.45MB/s    0:00:51    2,832,564,224  25%  158.51MB/s    0:00:49    3,000,565,760  27%  157.69MB/s    0:00:49    3,173,842,944  28%  159.55MB/s    0:00:47    3,355,738,112  30%  164.73MB/s    0:00:44    3,510,992,896  32%  161.83MB/s    0:00:44    3,685,842,944  33%  163.46MB/s    0:00:43    3,862,462,464  35%  164.26MB/s    0:00:42    4,038,131,712  36%  162.82MB/s    0:00:41    4,210,163,712  38%  166.82MB/s    0:00:39    4,383,506,432  40%  166.46MB/s    0:00:38    4,555,571,200  41%  165.37MB/s    0:00:37    4,756,996,096  43%  171.52MB/s    0:00:35    5,070,716,928  46%  205.33MB/s    0:00:27    5,396,594,688  49%  241.66MB/s    0:00:22    5,691,801,600  51%  271.10MB/s    0:00:18    5,877,301,248  53%  267.30MB/s    0:00:18    6,060,605,440  55%  236.18MB/s    0:00:20    6,244,925,440  57%  202.41MB/s    0:00:22    6,488,195,072  59%  190.02MB/s    0:00:22    6,819,971,072  62%  224.92MB/s    0:00:17    7,134,314,496  65%  256.18MB/s    0:00:14    7,449,051,136  68%  287.30MB/s    0:00:11    7,719,780,352  70%  293.85MB/s    0:00:10    8,011,120,640  73%  284.21MB/s    0:00:10    8,250,753,024  75%  266.31MB/s    0:00:09    8,515,321,856  77%  254.35MB/s    0:00:09    8,851,849,216  80%  270.04MB/s    0:00:07    9,188,474,880  83%  280.84MB/s    0:00:06    9,527,525,376  87%  304.63MB/s    0:00:04    9,847,275,520  89%  317.80MB/s    0:00:03   10,101,456,896  92%  298.15MB/s    0:00:02   10,392,272,896  94%  287.22MB/s    0:00:01   10,729,914,368  98%  286.89MB/s    0:00:00   10,945,970,043 100%  205.52MB/s    0:00:50 (xfr#5, to-chk=3/14)
-oral_catalog/sample/P18161_275_S71_L001/P18161_275_S71_L001_1_census_stage_0.ini
-            273 100%    0.42kB/s    0:00:00              273 100%    0.42kB/s    0:00:00 (xfr#6, to-chk=2/14)
-oral_catalog/sample/P18161_275_S71_L001/P18161_275_S71_L001_2.fastq
-         32,768   0%   49.08kB/s   62:25:02       63,733,760   0%   60.78MB/s    0:02:56      247,201,792   2%  117.93MB/s    0:01:29      419,725,312   3%  133.47MB/s    0:01:17      609,157,120   5%  145.31MB/s    0:01:10      772,374,528   7%  169.04MB/s    0:00:59      940,343,296   8%  165.34MB/s    0:00:59    1,113,128,960  10%  165.44MB/s    0:00:58    1,288,208,384  11%  161.98MB/s    0:00:58    1,459,978,240  13%  164.02MB/s    0:00:56    1,647,116,288  14%  168.63MB/s    0:00:54    1,830,387,712  16%  171.14MB/s    0:00:52    2,005,958,656  18%  171.25MB/s    0:00:51    2,159,640,576  19%  166.94MB/s    0:00:51    2,343,206,912  21%  166.09MB/s    0:00:51    2,526,740,480  22%  166.15MB/s    0:00:49    2,706,505,728  24%  167.15MB/s    0:00:48    2,887,942,144  26%  173.77MB/s    0:00:45    3,058,040,832  27%  170.56MB/s    0:00:45    3,245,473,792  29%  171.49MB/s    0:00:44    3,423,371,264  31%  170.91MB/s    0:00:43    3,600,351,232  32%  169.85MB/s    0:00:42    3,783,294,976  34%  172.74MB/s    0:00:40    3,945,299,968  35%  166.68MB/s    0:00:41    4,128,866,304  37%  168.20MB/s    0:00:40    4,305,616,896  39%  168.15MB/s    0:00:39    4,474,634,240  40%  164.95MB/s    0:00:38    4,647,518,208  42%  167.55MB/s    0:00:37    4,807,294,976  43%  161.87MB/s    0:00:37    4,990,730,240  45%  163.47MB/s    0:00:36    5,170,233,344  46%  165.97MB/s    0:00:34    5,343,051,776  48%  165.95MB/s    0:00:33    5,517,705,216  50%  169.50MB/s    0:00:31    5,674,827,776  51%  163.22MB/s    0:00:32    5,840,076,800  52%  159.82MB/s    0:00:31    6,011,715,584  54%  159.54MB/s    0:00:30    6,184,534,016  56%  159.06MB/s    0:00:29    6,366,199,808  57%  164.92MB/s    0:00:27    6,532,825,088  59%  165.25MB/s    0:00:26    6,712,983,552  60%  167.28MB/s    0:00:25    6,888,292,352  62%  167.91MB/s    0:00:24    7,059,374,080  64%  165.39MB/s    0:00:23    7,222,493,184  65%  164.55MB/s    0:00:22    7,389,511,680  67%  161.42MB/s    0:00:22    7,549,288,448  68%  157.71MB/s    0:00:21    7,734,067,200  70%  160.98MB/s    0:00:19    7,917,830,144  71%  165.91MB/s    0:00:18    8,088,813,568  73%  166.85MB/s    0:00:17    8,257,568,768  74%  168.99MB/s    0:00:16    8,434,089,984  76%  167.02MB/s    0:00:15    8,602,058,752  77%  163.26MB/s    0:00:14    8,767,963,136  79%  162.04MB/s    0:00:13    8,928,100,352  80%  159.99MB/s    0:00:12    9,083,551,744  82%  154.96MB/s    0:00:12    9,246,638,080  83%  153.80MB/s    0:00:11    9,421,979,648  85%  156.05MB/s    0:00:10    9,588,080,640  86%  157.47MB/s    0:00:08    9,757,884,416  88%  160.89MB/s    0:00:07    9,922,609,152  89%  161.29MB/s    0:00:06   10,106,667,008  91%  163.36MB/s    0:00:05   10,286,530,560  93%  166.65MB/s    0:00:04   10,467,475,456  94%  169.31MB/s    0:00:03   10,636,853,248  96%  170.42MB/s    0:00:02   10,804,920,320  97%  166.60MB/s    0:00:01   10,970,497,024  99%  163.19MB/s    0:00:00   11,028,360,435 100%  163.47MB/s    0:01:04 (xfr#7, to-chk=1/14)
-oral_catalog/sample/P18161_275_S71_L001/P18161_275_S71_L001_2_census_stage_0.ini
-            273 100%    0.69kB/s    0:00:00              273 100%    0.69kB/s    0:00:00 (xfr#8, to-chk=0/14)
-
-sent 22,067,473,063 bytes  received 263 bytes  187,808,283.63 bytes/sec
-total size is 22,062,085,946  speedup is 1.00
-...Tue Apr 27 16:12:48 CEST 2021: Recover - done
-
-ruby: warning: shebang line ending with \r may cause problems
-/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:146: warning: constant ::Fixnum is deprecated
-/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:161: warning: Insecure world writable dir /proj/uppstore2019028/Helen/meteor-linux.2019-11-04 in PATH, mode 042777
-31182575 reads; of these:
-  31182575 (100.00%) were unpaired; of these:
-    15399280 (49.38%) aligned 0 times
-    3021241 (9.69%) aligned exactly 1 time
-    12762054 (40.93%) aligned >1 times
-50.62% overall alignment rate
-31182575 reads; of these:
-  31182575 (100.00%) were unpaired; of these:
-    18235902 (58.48%) aligned 0 times
-    12946673 (41.52%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-41.52% overall alignment rate
-31182575 reads; of these:
-  31182575 (100.00%) were unpaired; of these:
-    31168974 (99.96%) aligned 0 times
-    13601 (0.04%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.04% overall alignment rate
-31182575 reads; of these:
-  31182575 (100.00%) were unpaired; of these:
-    30957543 (99.28%) aligned 0 times
-    225032 (0.72%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.72% overall alignment rate
-31182575 reads; of these:
-  31182575 (100.00%) were unpaired; of these:
-    16286926 (52.23%) aligned 0 times
-    2878388 (9.23%) aligned exactly 1 time
-    12017261 (38.54%) aligned >1 times
-47.77% overall alignment rate
-31182575 reads; of these:
-  31182575 (100.00%) were unpaired; of these:
-    18757079 (60.15%) aligned 0 times
-    12425496 (39.85%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-39.85% overall alignment rate
-31182575 reads; of these:
-  31182575 (100.00%) were unpaired; of these:
-    31169225 (99.96%) aligned 0 times
-    13350 (0.04%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.04% overall alignment rate
-31182575 reads; of these:
-  31182575 (100.00%) were unpaired; of these:
-    30972737 (99.33%) aligned 0 times
-    209838 (0.67%) aligned exactly 1 time
-    0 (0.00%) aligned >1 times
-0.67% overall alignment rate

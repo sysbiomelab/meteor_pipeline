@@ -1,0 +1,16 @@
+Bowtie2 looks for the specified index first in the current directory, then in the directory specified in the BOWTIE2_INDEXES environment variable.
+The pregenerated indexes for the reference genonomes are placed under /sw/data/reference/*/*/program_files/bowtie2 for each reference genome
+readlink: missing operand
+Try 'readlink --help' for more information.
+mkdir: cannot create directory ‘/Downstream’: Permission denied
+...Wed Apr 14 09:45:21 CEST 2021: PrepareReports - begin
+/var/spool/slurmd/job19452782/slurm_script: line 88: /Downstream/counting_report.csv: No such file or directory
+/var/spool/slurmd/job19452782/slurm_script: line 89: /Downstream/counting_report.final.csv.header: No such file or directory
+cat: /Downstream/counting_report.csv: No such file or directory
+/var/spool/slurmd/job19452782/slurm_script: line 90: /Downstream/counting_report.final.csv.body: No such file or directory
+/var/spool/slurmd/job19452782/slurm_script: line 91: /Downstream/counting_report.final.csv: No such file or directory
+rm: cannot remove ‘/Downstream/counting_report.csv’: No such file or directory
+rm: cannot remove ‘/Downstream/counting_report.final.csv.header’: No such file or directory
+rm: cannot remove ‘/Downstream/counting_report.final.csv.body’: No such file or directory
+...Wed Apr 14 09:45:21 CEST 2021: PrepareReports - failed
+

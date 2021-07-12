@@ -1,0 +1,504 @@
+Bowtie2 looks for the specified index first in the current directory, then in the directory specified in the BOWTIE2_INDEXES environment variable.
+The pregenerated indexes for the reference genonomes are placed under /sw/data/reference/*/*/program_files/bowtie2 for each reference genome
+[Pipeline]
+samples="\
+P18161_179/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_179_S75_L004
+P18161_187/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_187_S76_L004
+P18161_203/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_203_S77_L004
+"
+forward_identifier="_R1_001.fastq.gz"
+reverse_identifier="_R2_001.fastq.gz"
+seq_data_dir="/proj/snic2020-6-153/delivery04021/P18161"
+project_dir_rel="/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1"
+catalog_type="oral_catalog"
+seq_platform="illumina"
+trimFasta="/proj/uppstore2019028/projects/metagenome/alienTrimmerPF8contaminants.fasta"
+meteorImportScript="/proj/uppstore2019028/meteor.2019.11.04/MeteorImportFastq.rb"
+reference="/proj/uppstore2019028/projects/metagenome/meteor.reference"
+meteor="/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04"
+Rdir="/proj/uppstore2019028/projects/metagenome/meteor_downstream_rscripts"
+[worksession]
+meteor.reference.dir=/proj/uppstore2019028/Neelu_liver/REFERENCE
+meteor.db.type=binary
+meteor.nb.attempts=3
+meteor.read.cleaning.program=none
+meteor.read.cleaning.cmd=
+meteor.mapping.program=bowtie2
+meteor.mapping.file.format=sam
+meteor.is.cpu.percentage=0
+meteor.cpu.count=10
+meteor.checksum=md5
+meteor.excluded.reference.count=3
+[main_reference]
+meteor.reference.name=oral_catalog
+meteor.matches=10000
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapper.cmd=
+meteor.mapping.prefix.name=mapping_vs_oral_catalog
+meteor.counting.prefix.name=vs_hs_10_4_oral_catalog
+[excluded_reference_1]
+meteor.reference.name=Homo_sapiens_GRCh38
+meteor.matches=1
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapping.prefix.name=mapping_vs_Homo_sapiens_GRCh38
+[excluded_reference_2]
+meteor.reference.name=A_thaliana_TAIR10
+meteor.matches=1
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapping.prefix.name=mapping_vs_A_thaliana_TAIR10
+[excluded_reference_3]
+meteor.reference.name=Bos_taurus_UMD3
+meteor.matches=1
+meteor.mismatches=5
+meteor.is.perc.mismatches=1
+meteor.bestalignment=1
+meteor.mapping.prefix.name=mapping_vs_Bos_taurus_UMD3
+...Tue Jun  1 23:37:21 CEST 2021: Parse_variables - begin
+v_downstream_dir=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/Downstream
+v_fastqgz1=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_187/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_187_S76_L004_R1_001.fastq.gz
+v_fastqgz1_unzip=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_187_S76_L004/P18161_187_S76_L004_R1_001.fastq.unzipped
+v_fastqgz2=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_187/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_187_S76_L004_R2_001.fastq.gz
+v_fastqgz2_unzip=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_187_S76_L004/P18161_187_S76_L004_R2_001.fastq.unzipped
+v_final1=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_187_S76_L004/P18161_187_S76_L004_1.fastq
+v_final2=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_187_S76_L004/P18161_187_S76_L004_2.fastq
+v_prefix=vs_hs_10_4_oral_catalog
+v_project_dir=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1
+v_sampledir=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004
+v_trimmedS=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_187_S76_L004/P18161_187_S76_L004.trimmed.s.fastq
+v_workdir=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_187_S76_L004
+...Tue Jun  1 23:37:21 CEST 2021: Parse_variables - done
+
+...Tue Jun  1 23:37:21 CEST 2021: Init - begin
+...Tue Jun  1 23:37:21 CEST 2021: Init - done
+
+...Tue Jun  1 23:37:21 CEST 2021: Decompress - begin
+...Tue Jun  1 23:39:12 CEST 2021: Decompress - done
+
+...Tue Jun  1 23:39:12 CEST 2021: Trim - begin
+AlienTrimmer main options: -k 10 -l 45 -m 5 -q 20 -p 40 (Phred+33)  /  439 fwd alien sequence(s)  /  7856 fwd k-mers (k=10)  /  439 rev alien sequence(s)  /  7856 rev k-mers (k=10)
+[02:22]   1,000,000 read pairs processed:     796,434 trimmed (fwd:     382,671  rev:     413,763)      24,464 removed (fwd:      11,180  rev:      13,284)
+[04:42]   2,000,000 read pairs processed:   1,586,765 trimmed (fwd:     755,799  rev:     830,966)      47,420 removed (fwd:      21,358  rev:      26,062)
+[07:05]   3,000,000 read pairs processed:   2,379,570 trimmed (fwd:   1,131,218  rev:   1,248,352)      72,040 removed (fwd:      32,145  rev:      39,895)
+[09:26]   4,000,000 read pairs processed:   3,160,044 trimmed (fwd:   1,503,048  rev:   1,656,996)      95,114 removed (fwd:      42,564  rev:      52,550)
+[11:50]   5,000,000 read pairs processed:   3,945,142 trimmed (fwd:   1,871,540  rev:   2,073,602)     118,461 removed (fwd:      52,645  rev:      65,816)
+[14:10]   6,000,000 read pairs processed:   4,736,249 trimmed (fwd:   2,248,283  rev:   2,487,966)     142,552 removed (fwd:      63,377  rev:      79,175)
+[16:32]   7,000,000 read pairs processed:   5,515,296 trimmed (fwd:   2,616,788  rev:   2,898,508)     165,649 removed (fwd:      73,594  rev:      92,055)
+[18:54]   8,000,000 read pairs processed:   6,306,031 trimmed (fwd:   2,988,401  rev:   3,317,630)     189,284 removed (fwd:      83,852  rev:     105,432)
+[21:16]   9,000,000 read pairs processed:   7,080,393 trimmed (fwd:   3,356,413  rev:   3,723,980)     212,278 removed (fwd:      94,302  rev:     117,976)
+[23:37]  10,000,000 read pairs processed:   7,858,432 trimmed (fwd:   3,723,685  rev:   4,134,747)     235,503 removed (fwd:     104,476  rev:     131,027)
+[25:59]  11,000,000 read pairs processed:   8,647,515 trimmed (fwd:   4,096,273  rev:   4,551,242)     258,851 removed (fwd:     114,790  rev:     144,061)
+[28:20]  12,000,000 read pairs processed:   9,425,330 trimmed (fwd:   4,463,233  rev:   4,962,097)     281,740 removed (fwd:     125,071  rev:     156,669)
+[30:42]  13,000,000 read pairs processed:  10,209,889 trimmed (fwd:   4,831,248  rev:   5,378,641)     304,887 removed (fwd:     135,295  rev:     169,592)
+[33:03]  14,000,000 read pairs processed:  10,992,650 trimmed (fwd:   5,208,807  rev:   5,783,843)     328,508 removed (fwd:     146,140  rev:     182,368)
+[35:24]  15,000,000 read pairs processed:  11,763,601 trimmed (fwd:   5,577,231  rev:   6,186,370)     351,589 removed (fwd:     156,644  rev:     194,945)
+[37:48]  16,000,000 read pairs processed:  12,606,683 trimmed (fwd:   5,974,866  rev:   6,631,817)     375,967 removed (fwd:     167,476  rev:     208,491)
+[40:10]  17,000,000 read pairs processed:  13,491,854 trimmed (fwd:   6,393,037  rev:   7,098,817)     403,299 removed (fwd:     179,646  rev:     223,653)
+[42:33]  18,000,000 read pairs processed:  14,329,508 trimmed (fwd:   6,789,837  rev:   7,539,671)     429,242 removed (fwd:     191,486  rev:     237,756)
+[44:52]  19,000,000 read pairs processed:  15,205,454 trimmed (fwd:   7,201,752  rev:   8,003,702)     454,409 removed (fwd:     202,973  rev:     251,436)
+[47:14]  20,000,000 read pairs processed:  16,045,518 trimmed (fwd:   7,596,270  rev:   8,449,248)     480,105 removed (fwd:     214,841  rev:     265,264)
+[49:37]  21,000,000 read pairs processed:  16,886,586 trimmed (fwd:   7,994,204  rev:   8,892,382)     505,755 removed (fwd:     226,628  rev:     279,127)
+[51:57]  22,000,000 read pairs processed:  17,725,258 trimmed (fwd:   8,391,817  rev:   9,333,441)     531,179 removed (fwd:     238,310  rev:     292,869)
+[54:18]  23,000,000 read pairs processed:  18,553,019 trimmed (fwd:   8,781,217  rev:   9,771,802)     556,714 removed (fwd:     249,878  rev:     306,836)
+[56:38]  24,000,000 read pairs processed:  19,381,904 trimmed (fwd:   9,174,250  rev:  10,207,654)     582,310 removed (fwd:     261,745  rev:     320,565)
+[58:57]  25,000,000 read pairs processed:  20,208,966 trimmed (fwd:   9,563,592  rev:  10,645,374)     607,843 removed (fwd:     273,437  rev:     334,406)
+[61:15]  26,000,000 read pairs processed:  21,037,659 trimmed (fwd:   9,955,716  rev:  11,081,943)     632,852 removed (fwd:     284,852  rev:     348,000)
+[63:31]  27,000,000 read pairs processed:  21,867,345 trimmed (fwd:  10,349,455  rev:  11,517,890)     658,073 removed (fwd:     296,425  rev:     361,648)
+[65:53]  28,000,000 read pairs processed:  22,691,928 trimmed (fwd:  10,738,922  rev:  11,953,006)     683,321 removed (fwd:     307,961  rev:     375,360)
+[69:08]  29,000,000 read pairs processed:  23,554,346 trimmed (fwd:  11,149,740  rev:  12,404,606)     710,167 removed (fwd:     320,523  rev:     389,644)
+[71:33]  30,000,000 read pairs processed:  24,394,165 trimmed (fwd:  11,547,958  rev:  12,846,207)     736,270 removed (fwd:     332,642  rev:     403,628)
+[72:48]  30,506,118 read pairs processed:  24,812,125 trimmed (fwd:  11,744,800  rev:  13,067,325)     749,057 removed (fwd:     338,514  rev:     410,543)
+...Wed Jun  2 00:52:01 CEST 2021: Trim - done
+
+...Wed Jun  2 00:52:01 CEST 2021: Import - begin
+Import /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004_1.fastq
+Import /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004_2.fastq
+Importation done!
+...Wed Jun  2 00:52:04 CEST 2021: Import - done
+
+...Wed Jun  2 00:52:04 CEST 2021: Map_reads - begin
+
+Launch mapping
+
+
+######### Meteor Mapping task description
+Sample name = P18161_187_S76_L004
+Library name = P18161_187_S76_L004_1
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = xab.ini
+
+######### Task main mapping 0
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_1.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_187_S76_L004/mapping_vs_oral_catalog_P18161_187_S76_L004_1/P18161_187_S76_L004_1_1.sam
+
+######### TaskExcludedMapping(0, 1) ; reference name: Homo_sapiens_GRCh38
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_1.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_187_S76_L004/mapping_vs_Homo_sapiens_GRCh38_P18161_187_S76_L004_1/P18161_187_S76_L004_1_1.sam
+
+######### TaskExcludedMapping(0, 2) ; reference name: A_thaliana_TAIR10
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_1.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_187_S76_L004/mapping_vs_A_thaliana_TAIR10_P18161_187_S76_L004_1/P18161_187_S76_L004_1_1.sam
+
+######### TaskExcludedMapping(0, 3) ; reference name: Bos_taurus_UMD3
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_1.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_187_S76_L004/mapping_vs_Bos_taurus_UMD3_P18161_187_S76_L004_1/P18161_187_S76_L004_1_1.sam
+removing re-indexed file:
+/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_1.fastq.idx
+
+
+######### Meteor Mapping task description
+Sample name = P18161_187_S76_L004
+Library name = P18161_187_S76_L004_2
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = xab.ini
+
+######### Task main mapping 1
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_2.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_187_S76_L004/mapping_vs_oral_catalog_P18161_187_S76_L004_2/P18161_187_S76_L004_2_1.sam
+
+######### TaskExcludedMapping(1, 1) ; reference name: Homo_sapiens_GRCh38
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_2.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_187_S76_L004/mapping_vs_Homo_sapiens_GRCh38_P18161_187_S76_L004_2/P18161_187_S76_L004_2_1.sam
+
+######### TaskExcludedMapping(1, 2) ; reference name: A_thaliana_TAIR10
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_2.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_187_S76_L004/mapping_vs_A_thaliana_TAIR10_P18161_187_S76_L004_2/P18161_187_S76_L004_2_1.sam
+
+######### TaskExcludedMapping(1, 3) ; reference name: Bos_taurus_UMD3
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_2.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_187_S76_L004/mapping_vs_Bos_taurus_UMD3_P18161_187_S76_L004_2/P18161_187_S76_L004_2_1.sam
+removing re-indexed file:
+/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004/fbf055632ff7f57e130f928f062b9484/P18161_187_S76_L004_2.fastq.idx
+
+Launch counting
+
+Executing counting command:
+meteor-counter -w xab.ini -i /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_187_S76_L004 -p /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog -o mapping
+######### workspace preparation
+######### Meteor task description
+Sample name = P18161_187_S76_L004
+Library name = P18161_187_S76_L004_1
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = xab.ini
+######### Meteor task description
+Sample name = P18161_187_S76_L004
+Library name = P18161_187_S76_L004_2
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = xab.ini
+######### Task main counting
+
+Job finished !
+Done !
+Job finished without errors ...
+...Wed Jun  2 05:54:40 CEST 2021: Map_reads - done
+
+...Wed Jun  2 05:54:40 CEST 2021: Quantify - begin
+SampleCount: 1
+RunSampleCount: 2
+
+######### profiling job started
+
+1000000 processed records.
+2000000 processed records.
+3000000 processed records.
+4000000 processed records.
+5000000 processed records.
+6000000 processed records.
+7000000 processed records.
+8000000 processed records.
+8403558 processed records.
+
+Merged profiled data are saved here: /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/profiles/P18161_187_S76_L004.tsv
+
+Counting report is saved here: /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/profiles/P18161_187_S76_L004_counting_report.csv
+
+Extended counting report is saved here: /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/profiles/P18161_187_S76_L004_extended_counting_report.csv
+
+######### Job finished
+...Wed Jun  2 05:55:32 CEST 2021: Quantify - done
+
+ruby: warning: shebang line ending with \r may cause problems
+/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:146: warning: constant ::Fixnum is deprecated
+/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:161: warning: Insecure world writable dir /proj/uppstore2019028/Helen/meteor-linux.2019-11-04 in PATH, mode 042777
+29976736 reads; of these:
+  29976736 (100.00%) were unpaired; of these:
+    27566367 (91.96%) aligned 0 times
+    1475178 (4.92%) aligned exactly 1 time
+    935191 (3.12%) aligned >1 times
+8.04% overall alignment rate
+29976736 reads; of these:
+  29976736 (100.00%) were unpaired; of these:
+    29837320 (99.53%) aligned 0 times
+    139416 (0.47%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.47% overall alignment rate
+29976736 reads; of these:
+  29976736 (100.00%) were unpaired; of these:
+    29971382 (99.98%) aligned 0 times
+    5354 (0.02%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.02% overall alignment rate
+29976736 reads; of these:
+  29976736 (100.00%) were unpaired; of these:
+    29974092 (99.99%) aligned 0 times
+    2644 (0.01%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.01% overall alignment rate
+29976736 reads; of these:
+  29976736 (100.00%) were unpaired; of these:
+    27558442 (91.93%) aligned 0 times
+    1485965 (4.96%) aligned exactly 1 time
+    932329 (3.11%) aligned >1 times
+8.07% overall alignment rate
+29976736 reads; of these:
+  29976736 (100.00%) were unpaired; of these:
+    29836818 (99.53%) aligned 0 times
+    139918 (0.47%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.47% overall alignment rate
+29976736 reads; of these:
+  29976736 (100.00%) were unpaired; of these:
+    29971155 (99.98%) aligned 0 times
+    5581 (0.02%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.02% overall alignment rate
+29976736 reads; of these:
+  29976736 (100.00%) were unpaired; of these:
+    29973970 (99.99%) aligned 0 times
+    2766 (0.01%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.01% overall alignment rate
+...Tue Jun  1 23:37:21 CEST 2021: Parse_variables - begin
+v_downstream_dir=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/Downstream
+v_fastqgz1=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_179/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_179_S75_L004_R1_001.fastq.gz
+v_fastqgz1_unzip=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_179_S75_L004/P18161_179_S75_L004_R1_001.fastq.unzipped
+v_fastqgz2=/crex/proj/snic2020-6-153/nobackup/delivery04021/P18161/P18161_179/02-FASTQ/201104_A00187_0373_BHGM2CDSXY/P18161_179_S75_L004_R2_001.fastq.gz
+v_fastqgz2_unzip=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_179_S75_L004/P18161_179_S75_L004_R2_001.fastq.unzipped
+v_final1=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_179_S75_L004/P18161_179_S75_L004_1.fastq
+v_final2=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_179_S75_L004/P18161_179_S75_L004_2.fastq
+v_prefix=vs_hs_10_4_oral_catalog
+v_project_dir=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1
+v_sampledir=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004
+v_trimmedS=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_179_S75_L004/P18161_179_S75_L004.trimmed.s.fastq
+v_workdir=/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/working/P18161_179_S75_L004
+...Tue Jun  1 23:37:21 CEST 2021: Parse_variables - done
+
+...Tue Jun  1 23:37:21 CEST 2021: Init - begin
+...Tue Jun  1 23:37:21 CEST 2021: Init - done
+
+...Tue Jun  1 23:37:21 CEST 2021: Decompress - begin
+...Tue Jun  1 23:39:36 CEST 2021: Decompress - done
+
+...Tue Jun  1 23:39:36 CEST 2021: Trim - begin
+AlienTrimmer main options: -k 10 -l 45 -m 5 -q 20 -p 40 (Phred+33)  /  439 fwd alien sequence(s)  /  7856 fwd k-mers (k=10)  /  439 rev alien sequence(s)  /  7856 rev k-mers (k=10)
+[02:22]   1,000,000 read pairs processed:     831,825 trimmed (fwd:     407,003  rev:     424,822)      15,815 removed (fwd:       7,308  rev:       8,507)
+[04:43]   2,000,000 read pairs processed:   1,651,451 trimmed (fwd:     803,538  rev:     847,913)      31,008 removed (fwd:      13,992  rev:      17,016)
+[07:06]   3,000,000 read pairs processed:   2,473,402 trimmed (fwd:   1,194,438  rev:   1,278,964)      46,349 removed (fwd:      20,258  rev:      26,091)
+[09:29]   4,000,000 read pairs processed:   3,291,826 trimmed (fwd:   1,593,584  rev:   1,698,242)      61,918 removed (fwd:      27,193  rev:      34,725)
+[11:52]   5,000,000 read pairs processed:   4,100,312 trimmed (fwd:   1,984,841  rev:   2,115,471)      76,630 removed (fwd:      33,577  rev:      43,053)
+[14:15]   6,000,000 read pairs processed:   4,919,354 trimmed (fwd:   2,375,477  rev:   2,543,877)      92,028 removed (fwd:      39,855  rev:      52,173)
+[16:40]   7,000,000 read pairs processed:   5,746,332 trimmed (fwd:   2,776,833  rev:   2,969,499)     107,719 removed (fwd:      46,623  rev:      61,096)
+[19:02]   8,000,000 read pairs processed:   6,553,640 trimmed (fwd:   3,166,687  rev:   3,386,953)     122,287 removed (fwd:      52,958  rev:      69,329)
+[21:27]   9,000,000 read pairs processed:   7,370,466 trimmed (fwd:   3,556,332  rev:   3,814,134)     137,450 removed (fwd:      59,157  rev:      78,293)
+[23:49]  10,000,000 read pairs processed:   8,185,861 trimmed (fwd:   3,949,473  rev:   4,236,388)     153,015 removed (fwd:      65,798  rev:      87,217)
+[26:11]  11,000,000 read pairs processed:   8,990,583 trimmed (fwd:   4,338,321  rev:   4,652,262)     167,651 removed (fwd:      72,171  rev:      95,480)
+[28:32]  12,000,000 read pairs processed:   9,799,869 trimmed (fwd:   4,726,146  rev:   5,073,723)     182,109 removed (fwd:      78,152  rev:     103,957)
+[30:59]  13,000,000 read pairs processed:  10,621,977 trimmed (fwd:   5,121,474  rev:   5,500,503)     197,315 removed (fwd:      84,597  rev:     112,718)
+[33:22]  14,000,000 read pairs processed:  11,426,448 trimmed (fwd:   5,509,382  rev:   5,917,066)     211,769 removed (fwd:      90,853  rev:     120,916)
+[35:44]  15,000,000 read pairs processed:  12,238,987 trimmed (fwd:   5,898,185  rev:   6,340,802)     226,834 removed (fwd:      97,300  rev:     129,534)
+[38:09]  16,000,000 read pairs processed:  13,061,660 trimmed (fwd:   6,295,530  rev:   6,766,130)     242,280 removed (fwd:     104,078  rev:     138,202)
+[40:27]  17,000,000 read pairs processed:  13,869,008 trimmed (fwd:   6,691,132  rev:   7,177,876)     257,707 removed (fwd:     111,070  rev:     146,637)
+[42:46]  18,000,000 read pairs processed:  14,674,949 trimmed (fwd:   7,082,361  rev:   7,592,588)     272,858 removed (fwd:     117,792  rev:     155,066)
+[45:09]  19,000,000 read pairs processed:  15,532,388 trimmed (fwd:   7,493,367  rev:   8,039,021)     288,093 removed (fwd:     124,314  rev:     163,779)
+[47:29]  20,000,000 read pairs processed:  16,451,429 trimmed (fwd:   7,933,407  rev:   8,518,022)     305,496 removed (fwd:     131,796  rev:     173,700)
+[49:50]  21,000,000 read pairs processed:  17,320,197 trimmed (fwd:   8,353,717  rev:   8,966,480)     322,695 removed (fwd:     139,686  rev:     183,009)
+[52:10]  22,000,000 read pairs processed:  18,196,032 trimmed (fwd:   8,773,672  rev:   9,422,360)     339,322 removed (fwd:     147,182  rev:     192,140)
+[54:28]  23,000,000 read pairs processed:  19,080,568 trimmed (fwd:   9,197,455  rev:   9,883,113)     355,649 removed (fwd:     154,593  rev:     201,056)
+[56:44]  24,000,000 read pairs processed:  19,943,198 trimmed (fwd:   9,610,326  rev:  10,332,872)     372,392 removed (fwd:     162,069  rev:     210,323)
+[59:01]  25,000,000 read pairs processed:  20,805,997 trimmed (fwd:  10,024,761  rev:  10,781,236)     388,828 removed (fwd:     169,372  rev:     219,456)
+[61:14]  26,000,000 read pairs processed:  21,669,861 trimmed (fwd:  10,442,083  rev:  11,227,778)     405,366 removed (fwd:     176,909  rev:     228,457)
+[63:28]  27,000,000 read pairs processed:  22,528,018 trimmed (fwd:  10,855,474  rev:  11,672,544)     422,175 removed (fwd:     184,517  rev:     237,658)
+[65:48]  28,000,000 read pairs processed:  23,383,942 trimmed (fwd:  11,265,284  rev:  12,118,658)     438,551 removed (fwd:     191,720  rev:     246,831)
+[68:06]  29,000,000 read pairs processed:  24,233,217 trimmed (fwd:  11,675,448  rev:  12,557,769)     455,338 removed (fwd:     199,403  rev:     255,935)
+[70:25]  30,000,000 read pairs processed:  25,087,382 trimmed (fwd:  12,084,675  rev:  13,002,707)     471,860 removed (fwd:     206,852  rev:     265,008)
+[72:45]  31,000,000 read pairs processed:  25,942,157 trimmed (fwd:  12,494,203  rev:  13,447,954)     488,146 removed (fwd:     213,991  rev:     274,155)
+[75:04]  32,000,000 read pairs processed:  26,794,908 trimmed (fwd:  12,908,213  rev:  13,886,695)     504,396 removed (fwd:     221,376  rev:     283,020)
+[77:22]  33,000,000 read pairs processed:  27,647,691 trimmed (fwd:  13,319,999  rev:  14,327,692)     521,194 removed (fwd:     228,942  rev:     292,252)
+[79:44]  34,000,000 read pairs processed:  28,508,767 trimmed (fwd:  13,733,131  rev:  14,775,636)     537,646 removed (fwd:     236,242  rev:     301,404)
+[83:10]  35,000,000 read pairs processed:  29,388,979 trimmed (fwd:  14,161,068  rev:  15,227,911)     555,744 removed (fwd:     244,983  rev:     310,761)
+[85:32]  36,000,000 read pairs processed:  30,254,748 trimmed (fwd:  14,580,065  rev:  15,674,683)     573,245 removed (fwd:     253,195  rev:     320,050)
+[87:29]  36,809,689 read pairs processed:  30,945,289 trimmed (fwd:  14,910,271  rev:  16,035,018)     586,230 removed (fwd:     258,999  rev:     327,231)
+...Wed Jun  2 01:07:06 CEST 2021: Trim - done
+
+...Wed Jun  2 01:07:06 CEST 2021: Import - begin
+Import /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004_2.fastq
+Import /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004_1.fastq
+Importation done!
+...Wed Jun  2 01:07:08 CEST 2021: Import - done
+
+...Wed Jun  2 01:07:08 CEST 2021: Map_reads - begin
+
+Launch mapping
+
+
+######### Meteor Mapping task description
+Sample name = P18161_179_S75_L004
+Library name = P18161_179_S75_L004_1
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = xab.ini
+
+######### Task main mapping 0
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_1.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_179_S75_L004/mapping_vs_oral_catalog_P18161_179_S75_L004_1/P18161_179_S75_L004_1_1.sam
+
+######### TaskExcludedMapping(0, 1) ; reference name: Homo_sapiens_GRCh38
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_1.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_179_S75_L004/mapping_vs_Homo_sapiens_GRCh38_P18161_179_S75_L004_1/P18161_179_S75_L004_1_1.sam
+
+######### TaskExcludedMapping(0, 2) ; reference name: A_thaliana_TAIR10
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_1.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_179_S75_L004/mapping_vs_A_thaliana_TAIR10_P18161_179_S75_L004_1/P18161_179_S75_L004_1_1.sam
+
+######### TaskExcludedMapping(0, 3) ; reference name: Bos_taurus_UMD3
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_1.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_179_S75_L004/mapping_vs_Bos_taurus_UMD3_P18161_179_S75_L004_1/P18161_179_S75_L004_1_1.sam
+removing re-indexed file:
+/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_1.fastq.idx
+
+
+######### Meteor Mapping task description
+Sample name = P18161_179_S75_L004
+Library name = P18161_179_S75_L004_2
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = xab.ini
+
+######### Task main mapping 1
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 10000 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/oral_catalog/fasta/oral_catalog_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_2.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_179_S75_L004/mapping_vs_oral_catalog_P18161_179_S75_L004_2/P18161_179_S75_L004_2_1.sam
+
+######### TaskExcludedMapping(1, 1) ; reference name: Homo_sapiens_GRCh38
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Homo_sapiens_GRCh38/fasta/Homo_sapiens_GRCh38_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_2.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_179_S75_L004/mapping_vs_Homo_sapiens_GRCh38_P18161_179_S75_L004_2/P18161_179_S75_L004_2_1.sam
+
+######### TaskExcludedMapping(1, 2) ; reference name: A_thaliana_TAIR10
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/A_thaliana_TAIR10/fasta/A_thaliana_TAIR10_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_2.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_179_S75_L004/mapping_vs_A_thaliana_TAIR10_P18161_179_S75_L004_2/P18161_179_S75_L004_2_1.sam
+
+######### TaskExcludedMapping(1, 3) ; reference name: Bos_taurus_UMD3
+Executing mapping command:
+bowtie2-align-l --mm -p 10 --end-to-end --sensitive -k 1 --no-head --no-sq --no-unal --omit-sec-seq -x /proj/uppstore2019028/Neelu_liver/REFERENCE/Bos_taurus_UMD3/fasta/Bos_taurus_UMD3_dnaspace_index -U /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_2.fastq.idx -S /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/mapping/P18161_179_S75_L004/mapping_vs_Bos_taurus_UMD3_P18161_179_S75_L004_2/P18161_179_S75_L004_2_1.sam
+removing re-indexed file:
+/proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004/d08c61a8a832b6303c137f493d133fab/P18161_179_S75_L004_2.fastq.idx
+
+Launch counting
+
+Executing counting command:
+meteor-counter -w xab.ini -i /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/sample/P18161_179_S75_L004 -p /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog -o mapping
+######### workspace preparation
+######### Meteor task description
+Sample name = P18161_179_S75_L004
+Library name = P18161_179_S75_L004_2
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = xab.ini
+######### Meteor task description
+Sample name = P18161_179_S75_L004
+Library name = P18161_179_S75_L004_1
+Project name = oral_catalog
+Sequencing device = illumina
+Workflow = xab.ini
+######### Task main counting
+
+Job finished !
+Done !
+Job finished without errors ...
+...Wed Jun  2 06:58:03 CEST 2021: Map_reads - done
+
+...Wed Jun  2 06:58:03 CEST 2021: Quantify - begin
+SampleCount: 1
+RunSampleCount: 2
+
+######### profiling job started
+
+1000000 processed records.
+2000000 processed records.
+3000000 processed records.
+4000000 processed records.
+5000000 processed records.
+6000000 processed records.
+7000000 processed records.
+8000000 processed records.
+8403558 processed records.
+
+Merged profiled data are saved here: /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/profiles/P18161_179_S75_L004.tsv
+
+Counting report is saved here: /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/profiles/P18161_179_S75_L004_counting_report.csv
+
+Extended counting report is saved here: /proj/uppstore2019028/projects/metagenome/theo/newscripts/oraltestneelubatch1/oral_catalog/profiles/P18161_179_S75_L004_extended_counting_report.csv
+
+######### Job finished
+...Wed Jun  2 06:58:45 CEST 2021: Quantify - done
+
+ruby: warning: shebang line ending with \r may cause problems
+/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:146: warning: constant ::Fixnum is deprecated
+/proj/uppstore2019028/projects/metagenome/software/meteor_linux_2019.11.04/meteor.rb:161: warning: Insecure world writable dir /proj/uppstore2019028/Helen/meteor-linux.2019-11-04 in PATH, mode 042777
+36361668 reads; of these:
+  36361668 (100.00%) were unpaired; of these:
+    30908038 (85.00%) aligned 0 times
+    3312808 (9.11%) aligned exactly 1 time
+    2140822 (5.89%) aligned >1 times
+15.00% overall alignment rate
+36361668 reads; of these:
+  36361668 (100.00%) were unpaired; of these:
+    36108630 (99.30%) aligned 0 times
+    253038 (0.70%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.70% overall alignment rate
+36361668 reads; of these:
+  36361668 (100.00%) were unpaired; of these:
+    36355833 (99.98%) aligned 0 times
+    5835 (0.02%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.02% overall alignment rate
+36361668 reads; of these:
+  36361668 (100.00%) were unpaired; of these:
+    36356569 (99.99%) aligned 0 times
+    5099 (0.01%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.01% overall alignment rate
+36361668 reads; of these:
+  36361668 (100.00%) were unpaired; of these:
+    30890106 (84.95%) aligned 0 times
+    3336904 (9.18%) aligned exactly 1 time
+    2134658 (5.87%) aligned >1 times
+15.05% overall alignment rate
+36361668 reads; of these:
+  36361668 (100.00%) were unpaired; of these:
+    36107828 (99.30%) aligned 0 times
+    253840 (0.70%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.70% overall alignment rate
+36361668 reads; of these:
+  36361668 (100.00%) were unpaired; of these:
+    36355657 (99.98%) aligned 0 times
+    6011 (0.02%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.02% overall alignment rate
+36361668 reads; of these:
+  36361668 (100.00%) were unpaired; of these:
+    36356476 (99.99%) aligned 0 times
+    5192 (0.01%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+0.01% overall alignment rate
+slurmstepd: error: *** JOB 20272395 ON r33 CANCELLED AT 2021-06-02T13:33:35 ***

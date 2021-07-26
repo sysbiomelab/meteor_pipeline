@@ -53,8 +53,7 @@ function Decompress {
 	wait
 }
 function Trim {
-	[[ -f $v_fastqgz1_unzip && -f $v_fastqgz2_unzip ]] \
-	|| (echo "zip file not found" ; return 1 )
+	[[ -f $v_fastqgz1_unzip && -f $v_fastqgz2_unzip ]] || (echo "unnzip file not found" ; return 1 )
 	java -jar ${ALIEN_TRIMMER}/AlienTrimmer.jar \
 		-k 10 -l 45 -m 5 -p 40 -q 20 \
 		-if ${v_fastqgz1_unzip} -ir ${v_fastqgz2_unzip} -c $TMPDIR/$(basename $trimFasta) \

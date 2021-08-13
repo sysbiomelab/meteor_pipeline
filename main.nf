@@ -5,7 +5,7 @@ process Trim {
 	scratch true
 	cpus 1
 	time '1h'
-	scratch true
+	// container alientrimmer
 	
 	input:
 	tuple val(name), file(reads)
@@ -28,6 +28,7 @@ process Import {
 	scratch true
 	cpus 1
 	time '1h'
+	// container meteor
 
 	input:
 	tuple path(forward), path(reverse)
@@ -46,13 +47,13 @@ process Import {
 		-p !{params.catalog_type} \
 		-t !{params.seq_platform} \
 		-m "!{name}*"
-
 	'''
 }
 process Map_reads {
 	scratch true
-	cpus 10
+	cpus 20
 	time '8h'
+	// container meteor
 
 	input:
 	path(project)
@@ -73,9 +74,11 @@ process Map_reads {
 }
 
 process Quantify {
+	scratch true
 	cpus 1
 	time '1h'
 	publishDir "${params.outdir}", mode: 'copy'
+	// container meteor
 
 	input:
 	path(project)

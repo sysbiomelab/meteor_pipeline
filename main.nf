@@ -4,7 +4,8 @@ nextflow.enable.dsl=2
 process Trim {
 	scratch true
 	cpus 1
-	time '1h'
+	time '3h'
+	errorStrategy 'retry'
 	// container alientrimmer
 	
 	input:
@@ -28,6 +29,7 @@ process Import {
 	scratch true
 	cpus 1
 	time '1h'
+	errorStrategy 'retry'
 	// container meteor
 
 	input:
@@ -50,9 +52,9 @@ process Import {
 	'''
 }
 process Map_reads {
-	scratch true
-	cpus 20
-	time '8h'
+	//scratch true
+	cpus 1
+	time '120h'
 	// container meteor
 
 	input:
@@ -74,7 +76,7 @@ process Map_reads {
 }
 
 process Quantify {
-	scratch true
+	//scratch true
 	cpus 1
 	time '1h'
 	publishDir "${params.outdir}", mode: 'copy'

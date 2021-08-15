@@ -3,9 +3,9 @@ nextflow.enable.dsl=2
 
 process Trim {
 	scratch true
+	memory '1GB'
 	cpus 1
-	time '3h'
-	errorStrategy 'retry'
+	time '8h'
 	// container alientrimmer
 	
 	input:
@@ -27,9 +27,9 @@ process Trim {
 }
 process Import {
 	scratch true
+	memory '1GB'
 	cpus 1
-	time '1h'
-	errorStrategy 'retry'
+	time '2h'
 	// container meteor
 
 	input:
@@ -54,6 +54,7 @@ process Import {
 process Map_reads {
 	//scratch true
 	cpus 1
+	memory '15GB'
 	time '120h'
 	// container meteor
 

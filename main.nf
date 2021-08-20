@@ -5,8 +5,8 @@ process TRIM {
 	memory '6GB'
 	cpus 1
 	time '12h'
+	container 'theoportlock/alientrimmer'
 	//scratch true
-	//container alientrimmer
 	
 	input:
 	tuple val(name), path(reads)
@@ -30,8 +30,8 @@ process METEOR {
 	memory '120GB'
 	time '120h'
 	publishDir '${params.outdir}', mode: 'copy'
+	container 'theoportlock/meteor'
 	//scratch true
-	//container meteor
 
 	input:
 	tuple path(forward), path(reverse)

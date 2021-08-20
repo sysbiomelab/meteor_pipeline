@@ -17,7 +17,7 @@ process TRIM {
 
 	shell:
 	'''
-	java -jar !{params.alientrimmer}/AlienTrimmer.jar\
+	java -jar AlienTrimmer.jar\
 		-k 10 -l 45 -m 5 -p 40 -q 20\
 		-1 !{reads[0]}\
 		-2 !{reads[1]}\

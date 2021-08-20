@@ -2,11 +2,11 @@
 nextflow.enable.dsl=2
 
 process Trim {
-	scratch true
+	//scratch true
 	memory '1GB'
 	cpus 1
-	time '8h'
-	// container alientrimmer
+	time '4h'
+	//container alientrimmer
 	
 	input:
 	tuple val(name), file(reads)
@@ -26,11 +26,11 @@ process Trim {
 	'''
 }
 process Import {
-	scratch true
+	//scratch true
 	memory '1GB'
 	cpus 1
-	time '2h'
-	// container meteor
+	time '1m'
+	//container meteor
 
 	input:
 	tuple path(forward), path(reverse)
@@ -53,10 +53,10 @@ process Import {
 }
 process Map_reads {
 	//scratch true
-	cpus 10
-	memory '15GB'
+	cpus 1
+	memory '100GB'
 	time '120h'
-	// container meteor
+	//container meteor
 
 	input:
 	path(project)
@@ -79,9 +79,9 @@ process Map_reads {
 process Quantify {
 	//scratch true
 	cpus 1
-	time '1h'
+	time '10m'
 	publishDir "${params.outdir}", mode: 'copy'
-	// container meteor
+	//container meteor
 
 	input:
 	path(project)

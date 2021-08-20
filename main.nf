@@ -1,15 +1,15 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
-process Trim {
-	scratch true
-	memory '1GB'
+process TRIM {
+	memory '6GB'
 	cpus 1
-	time '8h'
-	// container alientrimmer
+	time '12h'
+	//scratch true
+	//container alientrimmer
 	
 	input:
-	tuple val(name), file(reads)
+	tuple val(name), path(reads)
 
 	output:
 	path '*.{1,2}.fastq'
@@ -17,7 +17,7 @@ process Trim {
 
 	shell:
 	'''
-	java -jar !{params.ALIEN_TRIMMER}/AlienTrimmer.jar\
+	java -jar !{params.alientrimmer}/AlienTrimmer.jar\
 		-k 10 -l 45 -m 5 -p 40 -q 20\
 		-1 !{reads[0]}\
 		-2 !{reads[1]}\
@@ -25,86 +25,119 @@ process Trim {
 		-o !{name}
 	'''
 }
-process Import {
-	scratch true
-	memory '1GB'
-	cpus 1
-	time '2h'
-	// container meteor
+process METEOR {
+	cpus 20
+	memory '120GB'
+	time '120h'
+	publishDir '${params.outdir}', mode: 'copy'
+	//scratch true
+	//container meteor
 
 	input:
 	tuple path(forward), path(reverse)
 	val(name)
 
 	output:
-	path 'project'
-	val(name)
+	path 'project/${params.catalog_type}/profiles'
 
 	shell:
 	'''
 	mkdir -p project/!{params.catalog_type}/{sample,mapping,profiles}
 	mv !{forward} !{reverse} project/!{params.catalog_type}/sample
-	ruby !{params.meteor}/data_preparation_tools/MeteorImportFastq.rb \
+	MeteorImportFastq.rb \
 		-i project/!{params.catalog_type}/sample \
 		-p !{params.catalog_type} \
 		-t !{params.seq_platform} \
 		-m "!{name}*"
-	'''
-}
-process Map_reads {
-	//scratch true
-	cpus 1
-	memory '15GB'
-	time '120h'
-	// container meteor
-
-	input:
-	path(project)
-	val(name)
-
-	output:
-	path 'project'
-	val(name)
-
-	shell:
-	'''
-	ruby !{params.meteor}/meteor-pipeline/meteor.rb \
+	meteor.rb \
 		-w !{params.ini_file} \
-		-i !{project}/!{params.catalog_type}/sample/!{name} \
-		-p !{project}/!{params.catalog_type} \
+		-i project/!{params.catalog_type}/sample/!{name} \
+		-p project/!{params.catalog_type} \
 		-o mapping
+	meteor-profiler \
+		-p project/!{params.catalog_type} \
+		-f project/!{params.catalog_type}/profiles \
+		-t smart_shared_reads \
+		-w !{params.ini_file} \
+		-o !{name} project/!{params.catalog_type}/mapping/!{name}/!{name}_vs_*_gene_profile/census.dat
 	'''
 }
-
-process Quantify {
-	//scratch true
+process REPORT {
 	cpus 1
 	time '1h'
 	publishDir "${params.outdir}", mode: 'copy'
-	// container meteor
+	//scratch true
 
 	input:
-	path(project)
-	val(name)
-
+	path(profiles)
+	
 	output:
-	path "project/${params.catalog_type}/profiles"
+	path "counting_report.csv"
 
 	shell:
 	'''
-	!{params.meteor}/meteor-pipeline/src/build/meteor-profiler \
-		-p !{project}/!{params.catalog_type} \
-		-f !{project}/!{params.catalog_type}/profiles \
-		-t smart_shared_reads \
-		-w !{params.ini_file} \
-		-o !{name} !{project}/!{params.catalog_type}/mapping/!{name}/!{name}_vs_*_gene_profile/census.dat
+	inFile="merged_counting_report.csv"
+	outFile="counting_report.csv"
+	cat !{profiles}/*counting_report.csv > $inFile
+	head -1 ${inFile} > ${outFile}.header
+	cat ${inFile} | grep -v sample > ${outFile}.body
+	cat ${outFile}.header ${outFile}.body > ${outFile}
+	rm ${inFile} ${outFile}.header ${outFile}.body
 	'''
 }
+process GCT {
+	cpus 1
+	time '1h'
+	publishDir "${params.outdir}", mode: 'copy'
+	//scratch true
 
+	input:
+	path(profiles)
+
+	output:
+	path "gct.tsv"
+
+	shell:
+	'''
+	inFile=pre_gct.tsv
+	outFile=gct.tsv
+	paste !{profiles}/*.tsv > $inFile
+	width=$(head -1 $inFile | awk '{print NF}')
+	echo $width
+	cat $inFile | cut -f1 | sed 's/id_fragment/gene_id/g' > ${outFile}.gene
+	cat $inFile | awk -v width="$width" 'BEGIN{OFS="\t"}{s="";for(i=2;i<=width;i=i+2){if (i!=width)s=s $i "\t"; if (i==width) s=s $i}; print s}' > ${outFile}.expr
+	paste ${outFile}.gene ${outFile}.expr > ${outFile}
+	rm ${inFile} ${outFile}.gene ${outFile}.expr
+	'''
+}
+process MOMR {
+	cpus 20
+	memory '120GB'
+	time '8h'
+	publishDir "${params.outdir}", mode: 'copy'
+	//scratch true
+	//container r-base
+
+	input:
+	path(gct)
+
+	output:
+	path "samplesum.tsv"
+	path "msp.tsv"
+
+	shell:
+	'''
+	downstream.r \
+		!{gct.tsv} \
+		!{params.reference}/!{params.mainref}/database/${params.mainref}_lite_annotation \
+		!{params.msp_dir}
+	'''
+}
 workflow {
 	ch_reads_trimming = Channel.fromFilePairs( params.input )
-	Trim(ch_reads_trimming)
-	Import(Trim.out)
-	Map_reads(Import.out)
-	Quantify(Map_reads.out)
+	TRIM(ch_reads_trimming)
+	METEOR(TRIM.out)
+	REPORT(METEOR.out)
+	GCT(METEOR.out)
+	MOMR(GCT.out)
 }

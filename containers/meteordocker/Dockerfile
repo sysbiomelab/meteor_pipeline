@@ -7,5 +7,9 @@ WORKDIR /tmp
 RUN git clone --recursive https://forgemia.inra.fr/metagenopolis/meteor.git
 WORKDIR meteor/meteor-pipeline/src
 RUN make
-RUN cp build/meteor-counter build/meteor-profiler ../meteor.rb /usr/local/bin
+RUN cp build/meteor-counter \
+	build/meteor-profiler \
+	../meteor.rb \
+	../../data_preparation_tools/* \
+	/usr/local/bin
 RUN gem install inifile

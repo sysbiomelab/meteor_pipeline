@@ -17,7 +17,7 @@ process TRIM {
 
 	shell:
 	'''
-	java -jar AlienTrimmer.jar\
+	alientrimmer\
 		-k 10 -l 45 -m 5 -p 40 -q 20\
 		-1 !{reads[0]}\
 		-2 !{reads[1]}\
@@ -29,7 +29,6 @@ process METEOR {
 	cpus 20
 	memory '120GB'
 	time '120h'
-	publishDir '${params.outdir}', mode: 'copy'
 	container 'theoportlock/meteor'
 	//scratch true
 
@@ -38,7 +37,8 @@ process METEOR {
 	val(name)
 
 	output:
-	path 'project/${params.catalog_type}/profiles'
+	path 'project/*/profiles/*.tsv', emit: sample_gct
+	path 'project/*/profiles/*_counting_report.csv', emit: sample_counting_report
 
 	shell:
 	'''
@@ -137,7 +137,7 @@ workflow {
 	ch_reads_trimming = Channel.fromFilePairs( params.input )
 	TRIM(ch_reads_trimming)
 	METEOR(TRIM.out)
-	REPORT(METEOR.out)
-	GCT(METEOR.out)
+	REPORT(METEOR.out.sample_counting_report.collect())
+	GCT(METEOR.out.sample_gct.collect())
 	MOMR(GCT.out)
 }

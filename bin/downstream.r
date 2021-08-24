@@ -1,5 +1,7 @@
 #!/usr/bin/Rscript
 memory.limit(9999999999)
+install.packages('dplyr', repos = "http://cran.us.r-project.org")
+install.packages('momr', repos = "http://cran.us.r-project.org")
 require(dplyr)  
 require(momr)
 #require(ff)

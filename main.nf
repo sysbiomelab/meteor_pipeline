@@ -2,8 +2,8 @@
 nextflow.enable.dsl=2
 
 process TRIM {
-	//memory '12GB'
-	memory { 12.GB * task.attempt }
+	memory '6GB'
+	//memory { 12.GB * task.attempt }
 	cpus '1'
 	time '12h'
 	container 'theoportlock/alientrimmer'
@@ -40,12 +40,14 @@ process METEOR {
 	val(name)
 
 	output:
-	path 'project/${params.catalog_type}/profiles'
+	path 'project/*/profiles/*.tsv', emit: sample_gct
+	path 'project/*/profiles/*_counting_report.csv', emit: sample_counting_report
 
 	shell:
 	'''
 	mkdir -p project/!{params.catalog_type}/{sample,mapping,profiles}
 	mv !{forward} !{reverse} project/!{params.catalog_type}/sample
+	echo "!{params.inifile}" > workflow.ini
 	MeteorImportFastq.rb \
 		-i project/!{params.catalog_type}/sample \
 		-p !{params.catalog_type} \
@@ -60,7 +62,7 @@ process METEOR {
 		-p project/!{params.catalog_type} \
 		-f project/!{params.catalog_type}/profiles \
 		-t smart_shared_reads \
-		-w !{params.ini_file} \
+		-w workflow.ini \
 		-o !{name} project/!{params.catalog_type}/mapping/!{name}/!{name}_vs_*_gene_profile/census.dat
 	'''
 }
@@ -117,8 +119,8 @@ process MOMR {
 	memory '120GB'
 	time '8h'
 	publishDir "${params.outdir}", mode: 'copy'
+	container 'rocker/r-base'
 	//scratch true
-	//container r-base
 
 	input:
 	path(gct)
@@ -129,7 +131,7 @@ process MOMR {
 
 	shell:
 	'''
-	downstream.r \
+	Rscript downstream.r \
 		!{gct.tsv} \
 		!{params.reference}/!{params.mainref}/database/${params.mainref}_lite_annotation \
 		!{params.msp_dir}
@@ -139,7 +141,7 @@ workflow {
 	ch_reads_trimming = Channel.fromFilePairs( params.input )
 	TRIM(ch_reads_trimming)
 	METEOR(TRIM.out)
-	REPORT(METEOR.out.collect())
-	GCT(METEOR.out)
+	REPORT(METEOR.out.sample_counting_report.collect())
+	GCT(METEOR.out.sample_gct.collect())
 	MOMR(GCT.out)
 }

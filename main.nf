@@ -27,10 +27,10 @@ process TRIM {
 	'''
 }
 process METEOR {
-	//cpus 20
-	//memory '120GB'
-	cpus 1
-	memory '6GB'
+	cpus 20
+	memory '120GB'
+	//cpus 1
+	//memory '6GB'
 	time '120h'
 	container 'theoportlock/meteor'
 	//scratch true

@@ -1,0 +1,6 @@
+FROM alpine
+ENV TZ=Europe/Lisbon
+RUN apk update && \
+	ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+	apk add --no-cache R R-dev libc-dev g++ libjpeg-turbo-dev bash
+RUN Rscript -e "install.packages(pkgs = c('momr', 'dplyr'), repos = 'http://cran.us.r-project.org')"

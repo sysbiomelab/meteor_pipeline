@@ -10,4 +10,7 @@ RUN javac AlienTrimmer.java
 RUN echo Main-Class: AlienTrimmer > MANIFEST.MF
 RUN jar -cmvf MANIFEST.MF AlienTrimmer.jar AlienTrimmer.class
 RUN rm MANIFEST.MF AlienTrimmer.class
-RUN cp AlienTrimmer.jar /usr/local/bin
+RUN echo '#!/usr/bin/java -jar' > alientrimmer && \
+	cat AlienTrimmer.jar >> alientrimmer && \
+	chmod +x alientrimmer && \
+	mv alientrimmer /usr/local/bin

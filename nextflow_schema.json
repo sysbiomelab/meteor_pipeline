@@ -36,24 +36,21 @@
             "title": "Reference genome options",
             "type": "object",
             "fa_icon": "fas fa-dna",
-            "description": "Reference genome related files and options required for the workflow.",
-            "properties": {}
+            "description": "Reference genome related files and options required for the workflow."
         },
         "institutional_config_options": {
             "title": "Institutional config options",
             "type": "object",
             "fa_icon": "fas fa-university",
             "description": "Parameters used to describe centralised config profiles. These should not be edited.",
-            "help_text": "The centralised nf-core configuration profiles use a handful of pipeline parameters to describe themselves. This information is then printed to the Nextflow log when you run a pipeline. You should not need to change these values when you run a pipeline.",
-            "properties": {}
+            "help_text": "The centralised nf-core configuration profiles use a handful of pipeline parameters to describe themselves. This information is then printed to the Nextflow log when you run a pipeline. You should not need to change these values when you run a pipeline."
         },
         "max_job_request_options": {
             "title": "Max job request options",
             "type": "object",
             "fa_icon": "fab fa-acquisitions-incorporated",
             "description": "Set the top limit for requested resources for any single job.",
-            "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details.",
-            "properties": {}
+            "help_text": "If you are running on a smaller system, a pipeline step requesting more resources than are available may cause the Nextflow to stop the run with an error. These options allow you to cap the maximum resources requested by any single job so that the pipeline will run on your system.\n\nNote that you can not _increase_ the resources requested by any job using these options. For that you will need your own configuration file. See [the nf-core website](https://nf-co.re/usage/configuration) for details."
         },
         "generic_options": {
             "title": "Generic options",
@@ -92,31 +89,38 @@
     "properties": {
         "catalog_type": {
             "type": "string",
-            "default": "gut_catalog"
+            "default": "gut_catalog",
+            "description": "Either gut_catalog or oral_catalog"
         },
         "seq_platform": {
             "type": "string",
-            "default": "illumina"
+            "default": "illumina",
+            "description": "Platform that sequencing data was produced from"
         },
         "ini_file": {
             "type": "string",
-            "default": "/users/k1809704/meteor/gut_msp_pipeline.ini"
-        },
-        "ALIEN_TRIMMER": {
-            "type": "string",
-            "default": "/mnt/lustre/groups/chmi/METEOR/AlienTrimmer/src/AlienTrimmer.jar"
+            "default": "/users/k1809704/meteor/gut_msp_pipeline.ini",
+            "description": "meteor_ini file (read meteor docs)"
         },
         "trimFasta": {
             "type": "string",
-            "default": "/mnt/lustre/groups/chmi/METEOR/alienTrimmerPF8contaminants.fasta"
-        },
-        "meteor": {
-            "type": "string",
-            "default": "/mnt/lustre/groups/chmi/METEOR/meteor"
+            "default": "/mnt/lustre/groups/chmi/METEOR/alienTrimmerPF8contaminants.fasta",
+            "description": "Aliens file for the trimmer to find in sequences"
         },
         "reference": {
             "type": "string",
-            "default": "/mnt/lustre/groups/chmi/METEOR/meteor_ref"
+            "default": "/mnt/lustre/groups/chmi/METEOR/meteor_ref",
+            "description": "References for mapping"
+        },
+        "mainref": {
+            "type": "string",
+            "default": "hs_10_4_igc2",
+            "description": "Main mapping reference file"
+        },
+        "msp_dir": {
+            "type": "string",
+            "default": "/proj/uppstore2019028/projects/metagenome/dataverse_files",
+            "description": "MSP catalog for main mapping reference"
         }
     }
 }

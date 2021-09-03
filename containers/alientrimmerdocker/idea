@@ -1,0 +1,4 @@
+echo '#!/usr/bin/java -jar' > alientrimmer
+cat AlienTrimmer.jar >> alientrimmer
+chmod +x alientrimmer
+mv alientrimmer /usr/bin/bash

@@ -27,10 +27,10 @@ process TRIM {
 	'''
 }
 process METEOR {
-	cpus 20
-	memory '120GB'
-	//cpus 1
-	//memory '6GB'
+	//cpus 20
+	//memory '120GB'
+	cpus 1
+	memory '6GB'
 	time '120h'
 	container 'theoportlock/meteor'
 	//scratch true
@@ -54,7 +54,7 @@ process METEOR {
 		-t !{params.seq_platform} \
 		-m "!{name}*"
 	meteor.rb \
-		-w !{params.ini_file} \
+		-w workflow.ini \
 		-i project/!{params.catalog_type}/sample/!{name} \
 		-p project/!{params.catalog_type} \
 		-o mapping

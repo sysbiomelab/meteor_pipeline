@@ -9,3 +9,5 @@ Move to nf-core
 
 Downstream integration
 	output barcode plots of mapped MSPs	
+
+Find a way to analye tuplexed data (such as cat 1R1.fastq.gz 2R1.fastq.gz > mergedR1.fastq.gz)

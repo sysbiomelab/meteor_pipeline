@@ -68,12 +68,12 @@ process METEOR {
 }
 process REPORT {
 	cpus 1
-	time '1h'
+	time '1m'
 	publishDir "${params.outdir}", mode: 'copy'
 	//scratch true
 
 	input:
-	path(profiles)
+	path(report)
 	
 	output:
 	path "counting_report.csv"
@@ -82,7 +82,7 @@ process REPORT {
 	'''
 	inFile="merged_counting_report.csv"
 	outFile="counting_report.csv"
-	cat !{profiles}/*counting_report.csv > $inFile
+	cat !{report} > $inFile
 	head -1 ${inFile} > ${outFile}.header
 	cat ${inFile} | grep -v sample > ${outFile}.body
 	cat ${outFile}.header ${outFile}.body > ${outFile}
@@ -91,12 +91,12 @@ process REPORT {
 }
 process GCT {
 	cpus 1
-	time '10m'
+	time '1m'
 	publishDir "${params.outdir}", mode: 'copy'
 	//scratch true
 
 	input:
-	path(profiles)
+	path(sample_gct)
 
 	output:
 	path "gct.tsv"
@@ -105,7 +105,7 @@ process GCT {
 	'''
 	inFile=pre_gct.tsv
 	outFile=gct.tsv
-	paste !{profiles}/*.tsv > $inFile
+	paste !{sample_gct} > $inFile
 	width=$(head -1 $inFile | awk '{print NF}')
 	echo $width
 	cat $inFile | cut -f1 | sed 's/id_fragment/gene_id/g' > ${outFile}.gene
@@ -119,7 +119,7 @@ process MOMR {
 	memory '120GB'
 	time '8h'
 	publishDir "${params.outdir}", mode: 'copy'
-	container 'rocker/r-base'
+	container 'theoportlock/momr'
 	//scratch true
 
 	input:
@@ -132,8 +132,8 @@ process MOMR {
 	shell:
 	'''
 	Rscript downstream.r \
-		!{gct.tsv} \
-		!{params.reference}/!{params.mainref}/database/${params.mainref}_lite_annotation \
+		!{gct} \
+		!{params.reference}/!{params.mainref}/database/!{params.mainref}_lite_annotation \
 		!{params.msp_dir}
 	'''
 }

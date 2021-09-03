@@ -1,7 +1,5 @@
 #!/usr/bin/Rscript
 memory.limit(9999999999)
-install.packages('dplyr', repos = "http://cran.us.r-project.org")
-install.packages('momr', repos = "http://cran.us.r-project.org")
 require(dplyr)  
 require(momr)
 #require(ff)
@@ -61,7 +59,7 @@ print("norm finished")
 
 print("igc2 info loading")
 MSP_data = read.csv(mspdownload, sep="\t", stringsAsFactors=F, header=T)
-MSP_data[MSP_data==""]<-NA
+MSP_data[MSP_data==""] <- NA
 MSP_data <- MSP_data[!(is.na(MSP_data$msp_name)),]
 print("igc2 info loaded")
 

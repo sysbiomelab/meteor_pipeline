@@ -115,9 +115,12 @@ process GCT {
 	'''
 }
 process MOMR {
-	cpus 20
-	memory '120GB'
-	time '8h'
+	//cpus 20
+	//memory '120GB'
+	//time '8h'
+	memory '6GB'
+	cpus '1'
+	time '12h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'
 	//scratch true
@@ -126,7 +129,6 @@ process MOMR {
 	path(gct)
 
 	output:
-	path "samplesum.tsv"
 	path "msp.tsv"
 
 	shell:

@@ -9,7 +9,7 @@ gctFile = args[1]
 #outDir = args[2]
 indexedCatalog = args[2]
 mspdownload = args[3]
-name = args[4]
+#name = args[4]
 
 ## for testing only
 #gctFile = "/proj/uppstore2019028/projects/metagenome/theo/newscripts/neworalmerged/Downstream/gct.tsv"
@@ -24,20 +24,20 @@ name = args[4]
 print("gct loading")
 gctTab = read.delim(gctFile, row.names=1, sep="\t", stringsAsFactors=F, header=T)
 #gctNorm10m = read.csv(gctFile, row.names=1, stringsAsFactors=F, header=T)
-# gctTab = read.delim.ffdf(gctFile, row.names=1, sep="\t", stringsAsFactors=F, header=T)
+#gctTab = read.delim.ffdf(gctFile, row.names=1, sep="\t", stringsAsFactors=F, header=T)
 print("gct loaded")
 
-print("gct info saving")
-sampleSum = colSums(gctTab)
-print(min(sampleSum))
-print(quantile(sampleSum,0.25))
-print(quantile(sampleSum,0.75))
-print(max(sampleSum))
+#print("gct info saving")
+#sampleSum = colSums(gctTab)
+#print(min(sampleSum))
+#print(quantile(sampleSum,0.25))
+#print(quantile(sampleSum,0.75))
+#print(max(sampleSum))
 #write.csv(sampleSum, quote=F, file=gzfile(paste(outDir, "samplesum.csv.gz",sep='/')))
 #write.csv(sampleSum, quote=F, file="samplesum.csv")
-rm(sampleSum)
-gc()
-print("gct info saved")
+#rm(sampleSum)
+#gc()
+#print("gct info saved")
 
 print("downsizing begin")
 depth = 10000000
@@ -53,13 +53,13 @@ sizeTab = read.table(indexedCatalog, sep="\t", stringsAsFactors=F)
 names(sizeTab) <- c('gene_id', 'gene_size')
 genesizes = sizeTab$gene_size
 names(genesizes) = sizeTab$gene_id
-print('length of genesizes')
-print(length(genesizes))
-print('number of rows of gctdown10m')
-print(nrow(gctdown10m))
+#print('length of genesizes')
+#print(length(genesizes))
+#print('number of rows of gctdown10m')
+#print(nrow(gctdown10m))
 gctNorm10m = momr::normFreqRPKM(dat=gctdown10m, cat=genesizes)
 #write.csv(gctNorm10m, file=gzfile(paste(outDir, "norm.csv.gz", sep='/')))
-write.csv(gctNorm10m, quote=F, file="norm.csv")
+#write.csv(gctNorm10m, quote=F, file="norm.csv")
 print("norm finished")
 
 print("igc2 info loading")
@@ -81,15 +81,14 @@ mgsGeneList = unique(do.call(c, mgsList))
 genes_id <- sizeTab$gene_id[match(mgsGeneList, sizeTab$gene_id)]
 id <- match(genes_id, rownames(gctNorm10m))
 data <- data.frame(gctNorm10m[id,])
-#data <- gctNorm10m[id,1:2]
+#data <- gctNorm10m[id,]
 rownames(data) <- mgsGeneList
 data[is.na(data)] <- 0
 genebag = rownames(data)
 mgs <- momr::projectOntoMGS(genebag=genebag, list.mgs=mgsList)
 length(genebag)
 mgs.dat <- momr::extractProfiles(mgs, data)
-write.csv(mgs.med.vect, quote=F, file="msp.csv")
 res <- as.data.frame(sapply(as.matrix(mgs.dat), median))
 rownames(res) <- names(mgs.dat)
-write.csv(res, quote=F, file=paste(name, 'msp.csv', sep='_'))
+write.csv(res, quote=F, file=paste(colnames(gctTab), 'msp.csv', sep='_'))
 print("mgs generation done")

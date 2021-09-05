@@ -36,7 +36,6 @@ print("gct info saved")
 #print("downsizing begin")
 #depth = 10000000
 #gctdown10m = momr::downsizeMatrix(gctTab, level=depth, repetitions=1, silent=F)
-#write.csv(gctdown10m, file=gzfile(paste(outDir, "down.csv.gz", sep='/')))
 #rm(gctTab)
 #gc()
 #print("downsizing finished")
@@ -53,8 +52,7 @@ print(length(genesizes))
 print('number of rows of gctdown10m')
 print(nrow(gctdown10m))
 gctNorm10m = momr::normFreqRPKM(dat=gctdown10m, cat=genesizes)
-#write.csv(gctNorm10m, file=gzfile(paste(outDir, "norm.csv.gz", sep='/')))
-write.csv(gctNorm10m, quote=F, file="norm.csv")
+#write.csv(gctNorm10m, quote=F, file="norm.csv")
 print("norm finished")
 
 print("igc2 info loading")
@@ -63,6 +61,8 @@ MSP_data[MSP_data==""] <- NA
 MSP_data <- MSP_data[!(is.na(MSP_data$msp_name)),]
 print("igc2 info loaded")
 
+# NEED TO CHECK #gene_id thing
+# Also error with rownames 14 rows below
 print("mgs generation begin")
 MSP_id = split(MSP_data$gene_id, MSP_data$msp_name)
 mgsList = MSP_id
@@ -75,7 +75,7 @@ mgsList = mgsList_MG
 mgsGeneList = unique(do.call(c, mgsList))
 genes_id <- sizeTab$gene_id[match(mgsGeneList, sizeTab$gene_id)]
 id <- match(genes_id, rownames(gctNorm10m))
-data <- gctNorm10m[id,]
+data <- data.frame(gctNorm10m[id,])
 rownames(data) <- mgsGeneList
 data[is.na(data)] <- 0
 genebag = rownames(data)

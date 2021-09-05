@@ -27,10 +27,10 @@ process TRIM {
 	'''
 }
 process METEOR {
-	//cpus 20
-	//memory '120GB'
-	cpus 1
-	memory '6GB'
+	cpus 10
+	memory '60GB'
+	//cpus 1
+	//memory '6GB'
 	time '120h'
 	container 'theoportlock/meteor'
 	//scratch true
@@ -115,8 +115,8 @@ process GCT {
 	'''
 }
 process MOMR {
-	cpus 20
-	memory '120GB'
+	cpus 10
+	memory '60GB'
 	time '8h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'
@@ -131,7 +131,7 @@ process MOMR {
 
 	shell:
 	'''
-	Rscript downstream.r \
+	downstream.r \
 		!{gct} \
 		!{params.reference}/!{params.mainref}/database/!{params.mainref}_lite_annotation \
 		!{params.msp_dir}

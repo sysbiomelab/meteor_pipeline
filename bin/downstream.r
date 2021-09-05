@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 memory.limit(9999999999)
-require(dplyr)  
-require(momr)
+require('dplyr')  
+require('momr')
 #require(ff)
 
 args = commandArgs(trailingOnly=TRUE)
@@ -9,15 +9,21 @@ gctFile = args[1]
 #outDir = args[2]
 indexedCatalog = args[2]
 mspdownload = args[3]
+name = args[4]
 
 ## for testing only
-#gctFile = "../neworalmerged/Downstream/gct.tsv"
-#outDir = "../neworalmerged/Downstream"
+#gctFile = "/proj/uppstore2019028/projects/metagenome/theo/newscripts/neworalmerged/Downstream/gct.tsv"
+#mspdownload = "/proj/uppstore2019028/projects/metagenome/dataverse_files/IGC2.1990MSPs.tsv"
 #indexedCatalog = "/crex/proj/uppstore2019028/projects/metagenome/meteor_ref/oral_catalog/database/oral_catalog_lite_annotation"
-#mspdownload = "/proj/uppstore2019028/projects/metagenome/oral_dataverse_files/oral.MSPs.tsv"
+#gctFile = "/home/theop/downstream_data/norm.csv"
+#gctFile = "/crex/proj/snic2020-6-153/nobackup/private/gutnftest/gct.tsv"
+#mspdownload = "/proj/uppstore2019028/projects/metagenome/dataverse_files/IGC2.1990MSPs.tsv"
+#indexedCatalog = "/crex/proj/uppstore2019028/projects/metagenome/meteor_ref/hs_10_4_igc2/database/hs_10_4_igc2_lite_annotation"
+#name = 'test'
 
 print("gct loading")
 gctTab = read.delim(gctFile, row.names=1, sep="\t", stringsAsFactors=F, header=T)
+#gctNorm10m = read.csv(gctFile, row.names=1, stringsAsFactors=F, header=T)
 # gctTab = read.delim.ffdf(gctFile, row.names=1, sep="\t", stringsAsFactors=F, header=T)
 print("gct loaded")
 
@@ -28,7 +34,7 @@ print(quantile(sampleSum,0.25))
 print(quantile(sampleSum,0.75))
 print(max(sampleSum))
 #write.csv(sampleSum, quote=F, file=gzfile(paste(outDir, "samplesum.csv.gz",sep='/')))
-write.csv(sampleSum, quote=F, file="samplesum.csv")
+#write.csv(sampleSum, quote=F, file="samplesum.csv")
 rm(sampleSum)
 gc()
 print("gct info saved")
@@ -40,7 +46,6 @@ print("gct info saved")
 #gc()
 #print("downsizing finished")
 gctdown10m <- gctTab
-#gctNorm10m <- gctdown10m
 
 print("norm begin")
 sizeTab = read.table(indexedCatalog, sep="\t", stringsAsFactors=F)
@@ -82,8 +87,8 @@ genebag = rownames(data)
 mgs <- momr::projectOntoMGS(genebag=genebag, list.mgs=mgsList)
 length(genebag)
 mgs.dat <- momr::extractProfiles(mgs, data)
-mgs.med.vect <- momr::computeFilteredVectors(profile=mgs.dat, type="median")
-mgs.med.vect <- mgs.med.vect[rowSums(mgs.med.vect)>0,]
-#write.csv(mgs.med.vect, file=gzfile(paste(outDir, "mgs.csv.gz",sep='/')))
 write.csv(mgs.med.vect, quote=F, file="msp.csv")
+res <- as.data.frame(sapply(as.matrix(mgs.dat), median))
+rownames(res) <- names(mgs.dat)
+write.csv(res, quote=F, file=paste(name, 'msp.csv', sep='_'))
 print("mgs generation done")

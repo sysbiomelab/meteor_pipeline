@@ -29,8 +29,6 @@ process TRIM {
 process METEOR {
 	cpus 10
 	memory '60GB'
-	//cpus 1
-	//memory '6GB'
 	time '120h'
 	container 'theoportlock/meteor'
 	//scratch true
@@ -115,12 +113,9 @@ process GCT {
 	'''
 }
 process MOMR {
-	//cpus 20
-	//memory '120GB'
-	//time '8h'
-	memory '6GB'
-	cpus '1'
-	time '12h'
+	cpus 20
+	memory '120GB'
+	time '8h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'
 	//scratch true
@@ -129,7 +124,7 @@ process MOMR {
 	path(gct)
 
 	output:
-	path "msp.tsv"
+	path "*.tsv"
 
 	shell:
 	'''

@@ -27,10 +27,8 @@ process TRIM {
 	'''
 }
 process METEOR {
-	cpus 20
-	memory '120GB'
-	//cpus 1
-	//memory '6GB'
+	cpus 10
+	memory '60GB'
 	time '120h'
 	container 'theoportlock/meteor'
 	//scratch true
@@ -115,9 +113,9 @@ process GCT {
 	'''
 }
 process MOMR {
-	cpus 20
-	memory '120GB'
-	time '8h'
+	cpus 10
+	memory '60GB'
+	time '12h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'
 	//scratch true
@@ -126,12 +124,11 @@ process MOMR {
 	path(gct)
 
 	output:
-	path "samplesum.tsv"
-	path "msp.tsv"
+	path "*.csv"
 
 	shell:
 	'''
-	Rscript downstream.r \
+	downstream.r \
 		!{gct} \
 		!{params.reference}/!{params.mainref}/database/!{params.mainref}_lite_annotation \
 		!{params.msp_dir}

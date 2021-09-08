@@ -7,7 +7,7 @@ process TRIM {
 	cpus '1'
 	time '12h'
 	container 'theoportlock/alientrimmer'
-	//scratch true
+	scratch true
 	
 	input:
 	tuple val(name), path(reads)
@@ -29,11 +29,9 @@ process TRIM {
 process METEOR {
 	cpus 10
 	memory '60GB'
-	//cpus 1
-	//memory '6GB'
 	time '120h'
 	container 'theoportlock/meteor'
-	//scratch true
+	scratch true
 
 	input:
 	tuple path(forward), path(reverse)
@@ -70,7 +68,7 @@ process REPORT {
 	cpus 1
 	time '1m'
 	publishDir "${params.outdir}", mode: 'copy'
-	//scratch true
+	scratch true
 
 	input:
 	path(report)
@@ -93,7 +91,7 @@ process GCT {
 	cpus 1
 	time '1m'
 	publishDir "${params.outdir}", mode: 'copy'
-	//scratch true
+	scratch true
 
 	input:
 	path(sample_gct)
@@ -115,21 +113,18 @@ process GCT {
 	'''
 }
 process MOMR {
-	//cpus 20
-	//memory '120GB'
-	//time '8h'
-	memory '6GB'
-	cpus '1'
+	cpus 10
+	memory '60GB'
 	time '12h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'
-	//scratch true
+	scratch true
 
 	input:
 	path(gct)
 
 	output:
-	path "msp.tsv"
+	path "*.csv"
 
 	shell:
 	'''

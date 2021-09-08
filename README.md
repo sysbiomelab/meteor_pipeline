@@ -1,32 +1,20 @@
-# METEOR pipeline
+# ![](docs/images/meteornflogo.png)
 
-## Description
-A wrapper for the automation and parallelisation of METEOR and its downstream analysis on a HPC cluster that is managed by a slurm scheduler
+## Introduction
+A nextflow wrapper for the automation and parallelisation of the METEOR pipeline and its downstream analysis.
 
-## Requirements
-It is required that the machine that runs this code has installed:
-* METEOR
-* Slurm
-* R
+## Quick Start
 
-## Installation
-None required, simply clone this repository
+1. Install [`nextflow`](https://nf-co.re/usage/installation) (`>=20.07.1`)
 
-## Meteor_wrapper Runtime
-* Ensure that the wrapper script has the slurm configurations that you require. As a rule of thumb, each sbatch meteor_wrapper command should run for 8 hrs. 
-* modify the workflow.ini file (without spaces) to source the necessary programs, sequencing data, and project location
-* run the meteor wrapper with:
+2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility _(please only use [`Conda`](https://conda.io/miniconda.html) as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_
+
+3. Download the pipeline and test it on a minimal dataset with a single command:
+
 ```bash
-sbatch meteor_wrapper.sh workflow.ini
+nextflow run main.nf\
+	-c configs/institutional/uppmax.config\
+	-c configs/conf/upprun.config.config
 ```
 
-If there are multiple samples for analysis then you must also:
-* compile a list of all the samples from the reference of the directory containing the sequencing files (see all_samples)
-* run the generate_inifiles.sh:
-```bash
-bash generate_inifiles.sh workflow.ini all_samples
-```
-* run the wrapper on all the files with:
-```bash
-bash run_inifiles.sh inifiles
-```
+> Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile <institute>` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.

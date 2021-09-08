@@ -113,9 +113,9 @@ process GCT {
 	'''
 }
 process MOMR {
-	cpus 20
-	memory '120GB'
-	time '8h'
+	cpus 10
+	memory '60GB'
+	time '12h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'
 	scratch true

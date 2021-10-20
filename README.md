@@ -16,3 +16,9 @@ nextflow run main.nf\
 	-c configs/institutional/uppmax.config\
 	-c configs/conf/upprun.config.config
 ```
+
+## Acknowledgements
+* INRA
+* SciLifeLab
+* KCL
+* KTH

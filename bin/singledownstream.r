@@ -11,8 +11,7 @@ mspdownload = args[3]
 #name = args[4]
 
 ## for testing only
-##gctFile = "/proj/uppstore2019028/projects/metagenome/theo/newscripts/neworalmerged/Downstream/gct.tsv"
-#gctFile = '/proj/uppstore2019028/nobackup/personal/theo/nmdsmeteor/gct.tsv'
+#gctFile = "/proj/uppstore2019028/projects/metagenome/theo/newscripts/neworalmerged/Downstream/gct.tsv"
 #mspdownload = "/proj/uppstore2019028/projects/metagenome/dataverse_files/IGC2.1990MSPs.tsv"
 #indexedCatalog = "/crex/proj/uppstore2019028/projects/metagenome/meteor_ref/oral_catalog/database/oral_catalog_lite_annotation"
 #gctFile = "/home/theop/downstream_data/norm.csv"
@@ -39,13 +38,13 @@ print("gct loaded")
 #gc()
 #print("gct info saved")
 
-#print("downsizing begin")
-#depth = 10000000
-#gctdown10m = momr::downsizeMatrix(gctTab, level=depth, repetitions=1, silent=F)
-#rm(gctTab)
-#gc()
-#print("downsizing finished")
-gctdown10m <- gctTab
+print("downsizing begin")
+depth = 10000000
+gctdown10m = momr::downsizeMatrix(gctTab, level=depth, repetitions=1, silent=F)
+rm(gctTab)
+gc()
+print("downsizing finished")
+#gctdown10m <- gctTab
 
 print("norm begin")
 sizeTab = read.table(indexedCatalog, sep="\t", stringsAsFactors=F)
@@ -78,17 +77,15 @@ mgsList = mgsList_MG
 mgsGeneList = unique(do.call(c, mgsList))
 genes_id <- sizeTab$gene_id[match(mgsGeneList, sizeTab$gene_id)]
 id <- match(genes_id, rownames(gctNorm10m))
-data <- gctNorm10m[id,]
+data <- data.frame(gctNorm10m[id,])
 rownames(data) <- mgsGeneList
 data[is.na(data)] <- 0
 genebag = rownames(data)
 mgs <- momr::projectOntoMGS(genebag=genebag, list.mgs=mgsList)
 length(genebag)
 mgs.dat <- momr::extractProfiles(mgs, data)
-#res <- as.data.frame(sapply(as.matrix(mgs.dat), median))
-#res <- sapply(as.matrix(mgs.dat), median)
-mgs.med.vect <- momr::computeFilteredVectors(profile=mgs.dat, type="median")
-mgs.med.vect <- mgs.med.vect[rowSums(mgs.med.vect)>0,]
-write.csv(mgs.med.vect, quote=F, file="msp.csv")
-
+res <- as.data.frame(sapply(as.matrix(mgs.dat), median))
+rownames(res) <- names(mgs.dat)
+colnames(res) <- colnames(gctNorm10m)
+write.csv(res, quote=F, file=paste(colnames(gctNorm10m), 'msp.csv', sep='_'))
 print("mgs generation done")

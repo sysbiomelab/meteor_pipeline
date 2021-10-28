@@ -89,7 +89,7 @@ process REPORT {
 }
 process GCT {
 	cpus 1
-	time '1m'
+	time '1h'
 	publishDir "${params.outdir}", mode: 'copy'
 	//scratch true
 
@@ -113,8 +113,8 @@ process GCT {
 	'''
 }
 process MOMR {
-	cpus 10
-	memory '60GB'
+	//cpus 10
+	//memory '60GB'
 	time '12h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'

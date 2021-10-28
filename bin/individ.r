@@ -2,6 +2,7 @@
 #memory.limit(9999999999)
 require('dplyr')  
 require('momr')
+#require(ff)
 
 args = commandArgs(trailingOnly=TRUE)
 gctFile = args[1]
@@ -10,8 +11,7 @@ mspdownload = args[3]
 #name = args[4]
 
 ## for testing only
-##gctFile = "/proj/uppstore2019028/projects/metagenome/theo/newscripts/neworalmerged/Downstream/gct.tsv"
-#gctFile = '/proj/uppstore2019028/nobackup/personal/theo/nmdsmeteor/gct.tsv'
+#gctFile = "/proj/uppstore2019028/projects/metagenome/theo/newscripts/neworalmerged/Downstream/gct.tsv"
 #mspdownload = "/proj/uppstore2019028/projects/metagenome/dataverse_files/IGC2.1990MSPs.tsv"
 #indexedCatalog = "/crex/proj/uppstore2019028/projects/metagenome/meteor_ref/oral_catalog/database/oral_catalog_lite_annotation"
 #gctFile = "/home/theop/downstream_data/norm.csv"
@@ -23,27 +23,28 @@ mspdownload = args[3]
 print("gct loading")
 gctTab = read.delim(gctFile, row.names=1, sep="\t", stringsAsFactors=F, header=T)
 #gctNorm10m = read.csv(gctFile, row.names=1, stringsAsFactors=F, header=T)
+#gctTab = read.delim.ffdf(gctFile, row.names=1, sep="\t", stringsAsFactors=F, header=T)
 print("gct loaded")
 
-print("gct info saving")
-sampleSum = colSums(gctTab)
-print(min(sampleSum))
-print(quantile(sampleSum,0.25))
-print(quantile(sampleSum,0.75))
-print(max(sampleSum))
+#print("gct info saving")
+#sampleSum = colSums(gctTab)
+#print(min(sampleSum))
+#print(quantile(sampleSum,0.25))
+#print(quantile(sampleSum,0.75))
+#print(max(sampleSum))
 #write.csv(sampleSum, quote=F, file=gzfile(paste(outDir, "samplesum.csv.gz",sep='/')))
-write.csv(sampleSum, quote=F, file="samplesum.csv")
-rm(sampleSum)
-gc()
-print("gct info saved")
-
-#print("downsizing begin")
-#depth = 10000000
-#gctdown10m = momr::downsizeMatrix(gctTab, level=depth, repetitions=1, silent=F)
-#rm(gctTab)
+#write.csv(sampleSum, quote=F, file="samplesum.csv")
+#rm(sampleSum)
 #gc()
-#print("downsizing finished")
-gctdown10m <- gctTab
+#print("gct info saved")
+
+print("downsizing begin")
+depth = 10000000
+gctdown10m = momr::downsizeMatrix(gctTab, level=depth, repetitions=1, silent=F)
+rm(gctTab)
+gc()
+print("downsizing finished")
+#gctdown10m <- gctTab
 
 print("norm begin")
 sizeTab = read.table(indexedCatalog, sep="\t", stringsAsFactors=F)
@@ -76,14 +77,15 @@ mgsList = mgsList_MG
 mgsGeneList = unique(do.call(c, mgsList))
 genes_id <- sizeTab$gene_id[match(mgsGeneList, sizeTab$gene_id)]
 id <- match(genes_id, rownames(gctNorm10m))
-data <- gctNorm10m[id,]
+data <- data.frame(gctNorm10m[id,])
 rownames(data) <- mgsGeneList
 data[is.na(data)] <- 0
 genebag = rownames(data)
 mgs <- momr::projectOntoMGS(genebag=genebag, list.mgs=mgsList)
 length(genebag)
 mgs.dat <- momr::extractProfiles(mgs, data)
-mgs.med.vect <- momr::computeFilteredVectors(profile=mgs.dat, type="median")
-mgs.med.vect <- mgs.med.vect[rowSums(mgs.med.vect)>0,]
-write.csv(mgs.med.vect, quote=F, file="msp.csv")
+res <- as.data.frame(sapply(as.matrix(mgs.dat), median))
+rownames(res) <- names(mgs.dat)
+colnames(res) <- colnames(gctNorm10m)
+write.csv(res, quote=F, file=paste(colnames(gctNorm10m), 'msp.csv', sep='_'))
 print("mgs generation done")

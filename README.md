@@ -7,12 +7,18 @@ A nextflow wrapper for the automation and parallelisation of the METEOR pipeline
 
 1. Load Nextflow according to the ["nf-core configuration"](https://github.com/nf-core/configs/blob/master/docs/uppmax.md) (`>=20.07.1`)
 
-2. Download the pipeline and test it on a minimal dataset of paired end illumina reads by modifying the conf/upprun.config file.
+2. Download the pipeline and test it on the nf-mag minimal dataset of paired end illumina reads by modifying the conf/upprun.config file.
 
 3. Run on the uppmax HPC cluster with a single command:
 
 ```bash
 nextflow run main.nf\
 	-c configs/institutional/uppmax.config\
-	-c configs/conf/upprun.config.config
+	-c configs/conf/upprun.config
 ```
+
+## Acknowledgements
+* INRA
+* SciLifeLab
+* KCL
+* KTH

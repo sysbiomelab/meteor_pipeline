@@ -2,6 +2,7 @@
 nextflow.enable.dsl=2
 
 process TRIM {
+	errorStrategy 'ignore'
 	memory '6GB'
 	//memory { 12.GB * task.attempt }
 	cpus '1'
@@ -27,8 +28,8 @@ process TRIM {
 	'''
 }
 process METEOR {
-	cpus 10
-	memory '60GB'
+	cpus 20
+	//memory '60GB'
 	time '120h'
 	container 'theoportlock/meteor'
 	//scratch true
@@ -113,11 +114,11 @@ process GCT {
 	'''
 }
 process MOMR {
-	//cpus 10
-	//memory '60GB'
-	time '12h'
+	cpus 20
+	time '8h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'
+	//clusterOptions = "-C mem256GB -p node"
 	//scratch true
 
 	input:

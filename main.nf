@@ -28,6 +28,7 @@ process TRIM {
 	'''
 }
 process METEOR {
+	errorStrategy 'ignore'
 	cpus 20
 	//memory '60GB'
 	time '120h'
@@ -90,7 +91,7 @@ process REPORT {
 }
 process GCT {
 	cpus 1
-	time '1h'
+	time '12h'
 	publishDir "${params.outdir}", mode: 'copy'
 	//scratch true
 
@@ -114,7 +115,7 @@ process GCT {
 	'''
 }
 process MOMR {
-	cpus 20
+	//cpus 20
 	time '8h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'

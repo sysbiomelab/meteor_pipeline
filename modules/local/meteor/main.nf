@@ -5,8 +5,8 @@ process METEOR {
 	container 'theoportlock/meteor'
 
 	input:
-	//tuple path(forward), path(reverse)
-	path(trimmedReads)
+	tuple path(forward), path(reverse)
+	//path(trimmedReads)
 	val(name)
 
 	output:

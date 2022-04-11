@@ -1,5 +1,11 @@
 {
     "name": "meteor-nf",
     "homePage": "https://github.com/theoportlock/meteor_pipeline",
-    "repos": {}
+    "repos": {
+        "nf-core/modules": {
+            "trimgalore": {
+                "git_sha": "3aacd46da2b221ed47aaa05c413a828538d2c2ae"
+            }
+        }
+    }
 }

@@ -1,6 +1,5 @@
 process MOMR {
-	//cpus 10
-	//memory '60GB'
+	clusterOptions "-A snic2021-5-248 -C mem256GB -p node"
 	time '12h'
 	publishDir "${params.outdir}", mode: 'copy'
 	container 'theoportlock/momr'

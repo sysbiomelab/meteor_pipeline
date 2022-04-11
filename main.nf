@@ -8,9 +8,8 @@ include { MOMR } from './modules/local/momr/main'
 nextflow.enable.dsl=2
 
 workflow {
-	//INPUT_CHECK()
-	ch_reads_trimming = Channel.fromFilePairs( params.input )
-	//ch_reads_trimming = INPUT_CHECK.out.raw_short_reads
+	INPUT_CHECK()
+	ch_reads_trimming = INPUT_CHECK.out.raw_short_reads
 	ALIENTRIMMER(ch_reads_trimming)
 	METEOR(ALIENTRIMMER.out)
 	REPORT(METEOR.out.sample_counting_report.collect())

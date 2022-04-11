@@ -6,12 +6,10 @@ process ALIENTRIMMER {
 	container 'theoportlock/alientrimmer'
 	
 	input:
-	tuple val(name), path(reads)
+	tuple val(meta), path(reads)
 
 	output:
-	//path '*.{1,2}.fastq'
-	path '*.fastq'
-	val(name)
+	tuple val(meta), path("*.fastq")
 
 	shell:
 	if (params.single_end) {
@@ -20,7 +18,7 @@ process ALIENTRIMMER {
 			-k 10 -l 45 -m 5 -p 40 -q 20\
 			-i !{reads}\
 			-a !{params.trimFasta}\
-			-o !{name.id}
+			-o !{meta.id}
 		'''
 	} else {
 		'''
@@ -29,7 +27,8 @@ process ALIENTRIMMER {
 			-1 !{reads[0]}\
 			-2 !{reads[1]}\
 			-a !{params.trimFasta}\
-			-o !{name.id}
+			-o !{meta.id}
+		rm -f !{meta.id}.S.fastq
 		'''
 	}
 }

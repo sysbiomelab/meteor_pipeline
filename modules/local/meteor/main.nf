@@ -5,9 +5,7 @@ process METEOR {
 	container 'theoportlock/meteor'
 
 	input:
-	tuple path(forward), path(reverse)
-	//path(trimmedReads)
-	val(name)
+	tuple val(meta), path(trimmedReads)
 
 	output:
 	path 'project/*/profiles/*.tsv', emit: sample_gct
@@ -22,10 +20,10 @@ process METEOR {
 		-i project/!{params.catalog_type}/sample \
 		-p !{params.catalog_type} \
 		-t !{params.seq_platform} \
-		-m "!{name.id}*"
+		-m "!{meta.id}*"
 	meteor.rb \
 		-w workflow.ini \
-		-i project/!{params.catalog_type}/sample/!{name.id} \
+		-i project/!{params.catalog_type}/sample/!{meta.id} \
 		-p project/!{params.catalog_type} \
 		-o mapping
 	meteor-profiler \
@@ -33,6 +31,6 @@ process METEOR {
 		-f project/!{params.catalog_type}/profiles \
 		-t smart_shared_reads \
 		-w workflow.ini \
-		-o !{name.id} project/!{params.catalog_type}/mapping/!{name.id}/!{name.id}_vs_*_gene_profile/census.dat
+		-o !{meta.id} project/!{params.catalog_type}/mapping/!{meta.id}/!{meta.id}_vs_*_gene_profile/census.dat
 	'''
 }

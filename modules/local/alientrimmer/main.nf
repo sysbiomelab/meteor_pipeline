@@ -1,7 +1,8 @@
 process ALIENTRIMMER {
 	errorStrategy 'ignore'
-	memory '6GB'
-	cpus '1'
+	//memory '6GB'
+	//cpus '1'
+	cpus 2
 	time '12h'
 	container 'theoportlock/alientrimmer'
 	

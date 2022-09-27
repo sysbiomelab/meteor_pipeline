@@ -1,7 +1,11 @@
 process METEOR {
+	//errorStrategy 'ignore'
+	errorStrategy 'retry'
+	    maxRetries 3
 	cpus 10
 	memory '60GB'
-	time '120h'
+	//time '24h'
+	time { 24.hour * task.attempt }
 	container 'theoportlock/meteor'
 
 	input:
